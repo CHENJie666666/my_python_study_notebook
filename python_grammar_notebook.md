@@ -292,6 +292,7 @@ d.pop()   # 不指定index时默认删除最后一个元素
 e = [9, 8, 7]
 e.remove(2)
 # 4. clear()函数 —— 删除列表所有元素，结果为空列表
+e.clear()
 ```
 
 - 修改
@@ -309,7 +310,11 @@ b[1:3] = ['a', 'b']
 
 查找位置：listname.index(obj, start, end) —— 返回索引值
 
+- 其他
 
+排序：list.sort(key=None, reverse=False) —— 升序排列
+
+反转：list.reversed()
 
 ### 5. 元组
 
@@ -360,41 +365,45 @@ a = dict(zip(keys, values))
 
 - 删除
 
-删除字典：del dictname
+删除字典
+
+```python
+del dictname
+dictname.clear()
+```
 
 删除字典元素：三种方法
 
+```python
 del dictname[key]
-
 dictname.pop(key)
-
-dictname.popitem() —— 随机删除
+dictname.popitem()  # 随机删除
+```
 
 - 增加
 
+```python
 dictname[key] = value
-
 dictname.update(dictname2)
+```
 
 - 修改
 
 key 的名字不能被修改，只能修改 value
 
+```python
 dictname[key] = value
+```
 
 - 查找
 
-dictname[key] —— 返回 key 所对应的 value
-
-dictname.get(key[,default]) —— default 用于指定要查询的键不存在时，此方法返回的默认值，如果不手动指定，会返回 None
-
-dictname.keys() —— 返回字典中所有的 keys
-
-dictname.values() —— 返回字典中所有的 values
-
-dictname.items() —— 返回字典中所有的键值对（key-value）
-
-
+```python
+dictname[key] # 返回 key 所对应的 value
+dictname.get(key[,default]) # default 用于指定要查询的键不存在时，此方法返回的默认值，如果不手动指定，会返回 None
+dictname.keys()  # 返回字典中所有的 keys
+dictname.values()  # 返回字典中所有的 values
+dictname.items()  # 返回字典中所有的键值对（key-value）
+```
 
 ### 7. 集合
 
@@ -405,6 +414,8 @@ dictname.items() —— 返回字典中所有的键值对（key-value）
 a = {1,'c',1,(1,2,3),'c'}
 # 2. set()函数创建
 print(set([1,2,3,4,5]))
+# 3. 集合推导式
+set4 = {num for num in range(1, 100) if num % 3 == 0 or num % 5 == 0}
 ```
 
 #### 增删改查
@@ -419,9 +430,15 @@ del setname —— 删除集合
 
 setname.remove(element) —— 删除集合中指定元素
 
+setname.discard(element) —— 删除集合中指定元素
+
+setname.pop() —— 从集合中“随机”删除某个元素
+
 - 添加
 
 setname.add(element)
+
+setname.update([list])
 
 #### 集合运算
 
@@ -431,6 +448,17 @@ setname.add(element)
 | 并集     | \|   | 取两集合全部的元素                |
 | 差集     | -    | 取一个集合中另一集合没有的元素    |
 | 对称差集 | ^    | 取集合 A 和 B 中不属于 A&B 的元素 |
+| 子集     | <=   | 判断左集合是否为右集合的子集      |
+| 超集     | >=   | 判断左集合是否为右集合的超集      |
+
+```
+set1.intersection(set2)  # 交集
+set1.union(set2)  # 并集
+set1.difference(set2)  # 差集
+set1.symmetric_difference(set2)  # 对称差集
+set2.issubset(set1)  # 子集
+set1.issuperset(set2)  # 超集
+```
 
 
 
@@ -1566,40 +1594,33 @@ with open(file, 'a') as f:
 
 os模块提供了多数操作系统的功能接口函数。当os模块被导入后，它会自适应于不同的操作系统平台，根据不同的平台进行相应的操作。
 
-dir 目录
+dir 目录：“D:\\Python_study\\module8\\ab\\”
 
-path 路径
-
-```python
-dir
-D:\\Python_study\\module8\\ab\\
-path
-D:\\Python_study\\module8\\ab\\cd.py
-```
+path 路径："D:\\Python_study\\module8\\ab\\cd.py"
 
 ### 2. os 模块使用
 
 #### os模块——系统操作
 
-- **os.sep**
+- os.sep
 
 获取系统路径分割符
 
-- **[os.name](http://os.name)**
+- os.name
 
 获取当前操作系统的名字，如Windows 返回 'nt'; Linux 返回'posix’
 
-- **os.getenv('path')**
+- os.getenv('path')
 
 读取 path 环境变量
 
-- **os.getcwd()**
+- os.getcwd()
 
 获取当前工作的目录
 
 #### os模块——目录操作（增删改查）
 
-- **os.listdir(dir)**
+- os.listdir(dir)
 
 列出目录下所有的文件和目录名（以列表的形式全部列举出来）
 
@@ -1611,77 +1632,81 @@ print(os.listdir())  # 输出"D:\\python_study\\folder1"目录下所有的文件
 print(os.listdir(r'D:\\python_study\\folder2'))  # 输出"D:\\python_study\\folder2"目录下所有的文件和目录名
 ```
 
-- **os.mkdir(dir)**
+- os.mkdir(dir)
 
 创建目录
 
-- **os.rmdir(dir)**
+- os.rmdir(dir)
 
 删除**空目录**（目录中有文件则无法删除）
 
-- **os.makedirs(dir)**
+- os.makedirs(dir)
 
 递归创建目录，若目录全部存在，则创建失败
 
-- **os.removedirs(dir)**
+- os.removedirs(dir)
 
 递归删除**空目录**，若目录中有文件则无法删除
 
-- **os.chdir(dir)**
+- os.chdir(dir)
 
 改变当前工作目录到指定目录
 
-- **os.remove(path)**
+- os.remove(path)
 
 删除文件
 
-- **os.rename(old_path_or_dir, new_path_or_dir)**
+- os.rename(old_path_or_dir, new_path_or_dir)
 
 对目录或文件重命名，若重命名后文件存在则重命名失败
 
 #### os.path模块——判断
 
-- **os.path.isfile(path)**
+- os.path.isfile(path)
 
 判断对象是否是文件
 
-- **os.path.isdir(dir)**
+- os.path.isdir(dir)
 
 判断对象是否是目录
 
-- **os.path.exists(path)**
+- os.path.exists(path)
 
 检验指定的对象是否存在
 
 #### os.path模块——目录操作
 
-- **os.path.basename(path)**
+- os.path.basename(path)
 
 返回文件名
 
-- **os.path.dirname(path)**
+- os.path.dirname(path)
 
 获得绝对目录，path本身必须是一个绝对路径
 
-- **os.path.getsize(path)**
+- os.path.getsize(path)
 
 获得文件的大小，如果为目录，返回0
 
-- **os.path.abspath(path)**
+- os.path.abspath(path)
 
 返回文件的绝对路径，path本身必须是一个相对路径
 
-- **os.path.split(path)**
+- os.path.split(path)
 
 返回路径的目录和文件名
 
-- **os.path.join(path, name)**
+- os.path.splitext(path)
+
+返回路径的文件名和后缀
+
+- os.path.join(path, name)
 
 连接目录和文件名，与 os.path.split(path) 相对
 
 #### 其他
 
-- **os.system(cmd)**
+- os.system(cmd)
 
 执行shell命令
 
