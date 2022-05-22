@@ -1,4 +1,12 @@
-# 有监督算法
+# 机器学习笔记
+
+## 说明
+
+1. 代码部分主要借鉴了[luwill/Machine_Learning_Code_Implementation: Mathematical derivation and pure Python code implementation of machine learning algorithms. (github.com)](https://github.com/luwill/Machine_Learning_Code_Implementation)项目的开源代码，推荐大家去看louwill大佬的新书《机器学习 公式推导与代码实现》
+
+2. 其余内容则为Coursera、CSDN等网站上学习整理所得
+
+# 有监督算法篇
 
 ## 线性回归
 
@@ -767,11 +775,164 @@ plot_logistic(X_train, y_train, params)
 
 ### 1. 原理
 
+对多元线性回归的损失加上L1范式惩罚，通过加入惩罚项，将一些不重要的自变量系数调整为0，从而达到剔除变量的目的
+
+#### 假设函数
+
+$h_\theta(x)=\theta_0 + \theta_1x$
+
+#### 损失函数
+
+普通最小二乘法
+
+$L(\theta_0,\theta_1)=\frac{1}{2m}\sum_{i=1}^m(h_\theta(x^{(i)})-y^{(i)})^2+\lambda|\theta_1|$
+
+### 2. skleran-API
+
+#### 参数说明
+
+```
+class sklearn.linear_model.Lasso(alpha=1.0, *, fit_intercept=True, normalize='deprecated', precompute=False, copy_X=True, max_iter=1000, tol=0.0001, warm_start=False, positive=False, random_state=None, selection='cyclic')
+```
+
+| 参数          | 说明                                                         |
+| ------------- | ------------------------------------------------------------ |
+| fit_intercept | bool型，选择是否需要计算截距，中心化的数据可以选择false      |
+| normalize     | bool型，选择是否需要标准化，减去均值再除以L2范式（将被删除） |
+| copy_X        | bool型，选择是否复制原数据，如果为false则原数据会因标准化而被覆盖 |
+| positive      | bool型，是否强制系数为正值                                   |
+| alpha         | float型，正则化系数，数值越大，则对复杂模型的惩罚力度越大    |
+| precompute    | 是否提前计算Gram矩阵来加速计算                               |
+| selection     | str型，指定每次迭代时，选择权重向量的哪个分量进行更新<br />"random"：随机选择<br />"cyclic"：循环选择 |
+
+#### 属性
+
+| 属性             | 说明                                         |
+| ---------------- | -------------------------------------------- |
+| coef_            | array，系数                                  |
+| intercept_       | float（0.0）或array，偏置                    |
+| n_features_in_   | int，输入特征数                              |
+| feature_names_in | array，输入特征名称                          |
+| n_iter_          | int或list，迭代次数                          |
+| dual_gap_        | float或ndarray，优化结束后的对偶间隙（没懂） |
+| sparse_coef_     | array，系数矩阵的稀疏表示                    |
+
+#### 方法
+
+| 方法                                          | 说明                             |
+| --------------------------------------------- | -------------------------------- |
+| fit(X, y[, sample_weight])                    | 拟合模型                         |
+| get_params([deep])                            | 获取estimator的参数              |
+| predict(X)                                    | 预测                             |
+| score(X, y[, sample_weight])                  | 返回相关系数                     |
+| set_params(**params)                          | 设置estimator的参数              |
+| path(X, y, *[, l1_ratio, eps, n_alphas, ...]) | 使用坐标下降计算elastic net path |
+
+#### 实例
+
+```python
+# 导入线性模型模块
+from sklearn import linear_model
+# 创建lasso模型实例
+sk_lasso = linear_model.Lasso(alpha=0.1)
+# 对训练集进行拟合
+sk_lasso.fit(X_train, y_train)
+# 打印模型相关系数
+print("sklearn Lasso intercept :", sk_lasso.intercept_)
+print("\nsklearn Lasso coefficients :\n", sk_lasso.coef_)
+print("\nsklearn Lasso number of iterations :", sk_lasso.n_iter_)
+```
 
 
 
 
-# 无监督算法
+
+### 4. Numpy算法
+
+```python
+import numpy as np
+import pandas as pd
+
+data = np.genfromtxt('example.dat', delimiter = ',')
+
+# 选择特征与标签
+x = data[:,0:100] 
+y = data[:,100].reshape(-1,1)
+# 加一列
+X = np.column_stack((np.ones((x.shape[0],1)),x)) # 为什么要加一列
+
+# 划分训练集与测试集
+X_train, y_train = X[:70], y[:70]
+X_test, y_test = X[70:], y[70:]
+
+# 定义参数初始化函数
+def initialize(dims):
+    w = np.zeros((dims, 1))
+    b = 0
+    return w, b
+
+# 定义符号函数
+def sign(x):
+    if x > 0:
+        return 1
+    elif x < 0:
+        return -1
+    else:
+        return 0
+
+# 利用numpy对符号函数进行向量化
+vec_sign = np.vectorize(sign)
+
+# 定义lasso损失函数
+def l1_loss(X, y, w, b, alpha):
+    num_train = X.shape[0]
+    num_feature = X.shape[1]
+    y_hat = np.dot(X, w) + b
+    loss = np.sum((y_hat-y)**2)/num_train + np.sum(alpha*abs(w))
+    dw = np.dot(X.T, (y_hat-y)) /num_train + alpha * vec_sign(w)
+    db = np.sum((y_hat-y)) /num_train
+    return y_hat, loss, dw, db
+
+# 定义训练过程
+def lasso_train(X, y, learning_rate=0.01, epochs=300):
+    loss_list = []
+    w, b = initialize(X.shape[1])
+    for i in range(1, epochs):
+        y_hat, loss, dw, db = l1_loss(X, y, w, b, 0.1)
+        w += -learning_rate * dw
+        b += -learning_rate * db
+        loss_list.append(loss)
+        
+        if i % 300 == 0:
+            print('epoch %d loss %f' % (i, loss))
+        params = {'w': w, 'b': b}
+        grads = {'dw': dw, 'db': db}
+    return loss, loss_list, params, grads
+
+# 执行训练示例
+loss, loss_list, params, grads = lasso_train(X_train, y_train, 0.01, 3000)
+
+# 定义预测函数
+def predict(X, params):
+    w = params['w']
+    b = params['b']
+    
+    y_pred = np.dot(X, w) + b
+    return y_pred
+
+y_pred = predict(X_test, params)
+
+from sklearn.metrics import r2_score
+r2_score(y_pred, y_test)
+```
+
+
+
+
+
+
+
+# 无监督算法篇
 
 ## K-means算法
 
