@@ -1,10 +1,12 @@
-# Python基础篇
+# Python Grammar Book I 基础篇
 
-## 01_数据类型
 
-### 1. 变量
 
-#### 变量命名
+# Part I 数据类型
+
+## 1. 变量
+
+### 变量命名
 
 - 只能包括数字、字母、下划线，但不能以数字开头
 - 不能与python的关键字重名
@@ -13,7 +15,7 @@
 
 - 推荐命名：驼峰式命名法，如MyName，或myName
 
-#### 变量赋值
+### 变量赋值
 
 ```python
 a = 3
@@ -22,7 +24,7 @@ c = 4.6
 d = True
 ```
 
-#### 变量的数据类型
+### 变量的数据类型
 
 - 基本类型
 
@@ -46,13 +48,13 @@ d = True
 
 
 
-### 2. 字符串
+## 2. 字符串
 
-#### 定义
+### 定义
 
 引号：单引号、双引号、三引号（三引号用来表示注释）
 
-#### 字符串的索引和切片
+### 索引和切片
 
 - 索引均从零开始
 - 切片包含冒号左边，但不包含冒号右边
@@ -69,7 +71,7 @@ print(a[-2])
 print(a[6:1:-1])
 ```
 
-#### 转义字符
+### 转义字符
 
 | 转义字符 | 含义                             |
 | -------- | -------------------------------- |
@@ -82,7 +84,7 @@ print(a[6:1:-1])
 | \r       | 回车                             |
 | \other   | 其它的字符以普通格式输出         |
 
-#### 字符串运算：拼接、重复、是否包含
+### 字符串运算：拼接、重复、是否包含
 
 ```python
 a, b = 'xgg', 'bb'
@@ -92,7 +94,7 @@ print('x' in a)
 print('b' not in b)
 ```
 
-#### 格式化字符串
+### 格式化字符串
 
 | 格式化符号 | 含义                                 |
 | ---------- | ------------------------------------ |
@@ -108,11 +110,11 @@ print(a + ' is ' + str(b) + ' years old.')
 print('{} is {} years old.'.format(a, b))
 ```
 
-#### 字符串内置函数
+### 字符串内置函数
 
 - python的内置函数：函数名（变量名）—— print()、input()、type()、len()
 
-- 判断型
+#### 判断型
 
 | 内置函数                                                     | 含义                                                         |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -125,7 +127,7 @@ print('{} is {} years old.'.format(a, b))
 | string.istitle()                                             | 如果 string 是标题化的，则返回 True，否则返回 False          |
 | string.endswith(obj, beg=0, end=len(string)) / string.startswith(obj, beg=0,end=len(string)) | 检查字符串是否以 obj 结束/开始，如果beg 或者 end 指定则检查指定的范围内是否以 obj 结束/开始，如果是，返回 True,否则返回 False. |
 
-- 大小写
+#### 大小写
 
 | 内置函数                        | 含义                                  |
 | ------------------------------- | ------------------------------------- |
@@ -133,14 +135,14 @@ print('{} is {} years old.'.format(a, b))
 | string.lower() / string.upper() | 转换 string 中所有大写字符为小写/大写 |
 | string.swapcase()               | 翻转 string 中的大小写                |
 
-- 统计
+#### 统计
 
 | 内置函数                                  | 含义                                                         |
 | ----------------------------------------- | ------------------------------------------------------------ |
 | string.count(str, beg=0, end=len(string)) | 返回 str 在 string 里面出现的次数，如果 beg 或者 end 指定则返回指定范围内 str 出现的次数 |
 | max(str)/min(str)                         | 返回字符串 *str* 中最大/小的字母。                           |
 
-- 编码
+#### 编码
 
 | 内置函数                                         | 含义                                                         |
 | ------------------------------------------------ | ------------------------------------------------------------ |
@@ -148,7 +150,7 @@ print('{} is {} years old.'.format(a, b))
 | string.encode(encoding='UTF-8', errors='strict') | 以 encoding 指定的编码格式编码 string，如果出错默认报一个ValueError 的异常，除非 errors 指定的是'ignore'或者'replace' |
 | string.format()                                  | 格式化字符串                                                 |
 
-- 查找替换
+#### 查找替换
 
 | 内置函数                                            | 含义                                                         |
 | --------------------------------------------------- | ------------------------------------------------------------ |
@@ -158,7 +160,7 @@ print('{} is {} years old.'.format(a, b))
 | string.rindex( str, beg=0,end=len(string))          | 类似于 index()，不过是返回最后一个匹配到的子字符串的索引号。 |
 | string.replace(str1, str2,  num=string.count(str1)) | 把 string 中的 str1 替换成 str2,如果 num 指定，则替换不超过 num 次. |
 
-- 删除转换
+#### 删除转换
 
 | 内置函数                         | 含义                                                         |
 | -------------------------------- | ------------------------------------------------------------ |
@@ -168,7 +170,7 @@ print('{} is {} years old.'.format(a, b))
 | string.translate(str, del="")    | 根据 str 给出的表(包含 256 个字符)转换 string 的字符, 要过滤掉的字符放到 del 参数中 |
 | string.maketrans(intab, outtab]) | maketrans() 方法用于创建字符映射的转换表，对于接受两个参数的最简单的调用方式，第一个参数是字符串，表示需要转换的字符，第二个参数也是字符串表示转换的目标。 |
 
-- 格式调整
+#### 格式调整
 
 | 内置函数                     | 含义                                                         |
 | ---------------------------- | ------------------------------------------------------------ |
@@ -177,7 +179,7 @@ print('{} is {} years old.'.format(a, b))
 | string.rjust(width)          | 返回一个原字符串右对齐,并使用空格填充至长度 width 的新字符串 |
 | string.zfill(width)          | 返回长度为 width 的字符串，原字符串 string 右对齐，前面填充0 |
 
-- 其他
+#### 其他
 
 | 内置函数                                    | 含义                                                         |
 | ------------------------------------------- | ------------------------------------------------------------ |
@@ -189,23 +191,98 @@ print('{} is {} years old.'.format(a, b))
 
 
 
-### 3. 序列
+## 3. 数值型
+
+### 运算符
+
+#### 算术运算符
+
+| 运算符 | 含义     |
+| ------ | -------- |
+| +      | 相加     |
+| -      | 相减     |
+| *      | 相乘     |
+| /      | 相除     |
+| %      | 取余数   |
+| **     | 幂运算   |
+| //     | 整除取商 |
+
+#### 比较运算符
+
+| 运算符 | 含义         |
+| ------ | ------------ |
+| ==     | 是否相等     |
+| !=     | 是否不相等   |
+| >      | 是否大于     |
+| <      | 是否小于     |
+| >=     | 是否大于等于 |
+| <=     | 是否小于等于 |
+
+#### 赋值运算符
+
+| 运算符             | 含义                             |
+| ------------------ | -------------------------------- |
+| =                  | 简单赋值                         |
+| +=                 | 加法赋值，a += 1 等效于a = a + 1 |
+| 其他算术运算符类似 |                                  |
+
+#### 逻辑运算符
+
+| 运算符 | 含义 |
+| ------ | ---- |
+| and    | 与   |
+| or     | 或   |
+| not    | 非   |
+
+#### 成员运算符
+
+- 对可迭代对象使用（包括字符串、列表或元祖）
+
+| 运算符 | 含义       |
+| ------ | ---------- |
+| in     | 是否包含   |
+| not in | 是否不包含 |
+
+#### 身份运算符
+
+- 判断两个对象的存储ID是否相同
+
+| 运算符 | 含义       |
+| ------ | ---------- |
+| is     | 是否ID相同 |
+| is not | 是否ID不同 |
+
+- is 与 == 区别：is 用于判断两个变量引用对象是否为同一个(同一块内存空间)， == 用于判断引用变量的值是否相等
+
+### 数值型内置函数
+
+| 函数             | 含义                               |
+| ---------------- | ---------------------------------- |
+| abs(x)           | x 的绝对值                         |
+| max(x1, x2, ...) | 返回给定参数的最大值               |
+| min(x1, x2, ...) | 返回给定参数的最小值               |
+| pow(x, y)        | x ** y                             |
+| round(x, [n])    | x 的四舍五入值，n 表示保留小数位数 |
+
+
+
+## 4. 序列
 
 python中的序列包括字符串、列表、元组、集合和字典
 
-#### 均支持以下操作
+### 4.1 序列通用操作
 
-- 索引
+#### 索引
 
-sname[x]
+- sname[x]
 
-索引从零开始
+- 索引从零开始
 
-- 切片
+#### 切片
 
 sname[start : end : step]
 
-- 相加和相乘
+#### 相加和相乘
 
 ```python
 a = [1, 2, 3]
@@ -214,7 +291,7 @@ print(a + b)
 print(a * 2)
 ```
 
-- 检查元素是否包含在序列中
+#### 是否包含
 
 ```python
 print(1 in a)
@@ -223,7 +300,7 @@ print(1 not in a)
 
 字典的 in 操作只能用来匹配 key
 
-- 内置函数
+#### 内置函数
 
 | 内置函数    | 含义                                                         |
 | ----------- | ------------------------------------------------------------ |
@@ -246,7 +323,7 @@ print(1 not in a)
 
 
 
-### 4. 列表
+### 4.2 列表
 
 #### 定义列表
 
@@ -316,7 +393,9 @@ b[1:3] = ['a', 'b']
 
 反转：list.reversed()
 
-### 5. 元组
+
+
+### 4.3 元组
 
 #### 创建元组
 
@@ -331,7 +410,7 @@ t = tuple('abcd')
 
 
 
-### 6. 字典
+### 4.4 字典
 
 #### 特点
 
@@ -405,7 +484,9 @@ dictname.values()  # 返回字典中所有的 values
 dictname.items()  # 返回字典中所有的键值对（key-value）
 ```
 
-### 7. 集合
+
+
+### 4.5 集合
 
 #### 创建集合
 
@@ -462,11 +543,11 @@ set1.issuperset(set2)  # 超集
 
 
 
-## 02_流程控制语句
+# Part II 流程控制语句
 
-### 1. 条件语句
+## 1. 条件语句
 
-#### if 语句
+### if 语句
 
 ```python
 age = int(input("请输入你的年龄：") )
@@ -474,7 +555,7 @@ if age < 18 :
     print("你还未成年，建议在家人陪同下使用该软件！")
 ```
 
-#### if-else 语句
+### if-else 语句
 
 ```python
 b = False
@@ -484,7 +565,7 @@ else:
     print('b是False')
 ```
 
-#### if-elif-else 语句
+### if-elif-else 语句
 
 ```python
 height = float(input("输入身高（米）："))
@@ -504,19 +585,19 @@ else:
     print("肥胖")
 ```
 
-#### if 后面的表达式
+### if 后面的表达式
 
 当 if 后面的条件为如下元素时，也表示 False
 
 - "" # 空字符串
-- [ ] # 空列表
+- [] # 空列表
 - ( ) # 空元组
 - { } # 空字典
 - None # 空值
 - 0  # 零值
 - 不带返回值的函数：对于没有 return 语句的函数，返回值为空，也即 None
 
-#### if 语句的嵌套
+### if 语句的嵌套
 
 ```python
 proof = int(input("输入驾驶员每 100 mL 血液酒精的含量："))
@@ -529,11 +610,11 @@ else:
         print("驾驶员已构成醉驾")
 ```
 
-#### pass 语句
+### pass 语句
 
 表示忽略
 
-#### assert 语句
+### assert 语句
 
 - 格式：assert 表达式, 注释
 - 相当于以下条件语句
@@ -547,9 +628,9 @@ else:
 
 
 
-### 2. 循环语句
+## 2. 循环语句
 
-#### while 语句
+### while 语句
 
 注意对条件变量的更新，避免死循环
 
@@ -566,9 +647,9 @@ while num < 100:
 print("循环结束!")
 ```
 
-#### for 语句
+### for 语句
 
-- 语法格式
+#### 语法格式
 
 for 迭代变量 in 字符串|列表|元组|字典|集合：代码块
 
@@ -578,6 +659,8 @@ letter = "xgg love xbb"
 for e in letter:
     print(e, end="")
 ```
+
+#### 应用
 
 - 应用1 —— 遍历列表/元组/字典
 
@@ -597,7 +680,9 @@ for i in range(101):
 print(result)
 ```
 
-#### 循环嵌套
+
+
+### 循环嵌套
 
 ```python
 i = 0
@@ -607,7 +692,7 @@ while i<10:
     i=i+1
 ```
 
-#### break 语句
+### break 语句
 
 跳出循环
 
@@ -620,7 +705,7 @@ for i in letter:
     print(i)
 ```
 
-#### continue 语句
+### continue 语句
 
 跳出当前循环，继续下一次循环
 
@@ -635,11 +720,11 @@ for i in list1:
 
 
 
-## 03_函数
+# Part III 函数
 
-### 不带参数的函数
+## 1. 不带参数的函数
 
-- 函数结构
+### 函数结构
 
 ```python
 # 函数定义
@@ -650,7 +735,7 @@ def <函数名>(<形式参数>):
 <函数名>（<实际参数>）
 ```
 
-- 示例
+### 示例
 
 ```python
 # 函数定义
@@ -664,7 +749,11 @@ def my_print():
 my_print()
 ```
 
-### 函数参数
+
+
+## 2. 函数参数
+
+### 示例
 
 ```python
 # 函数定义
@@ -682,7 +771,7 @@ odd_or_even(3)
 odd_or_even(4)
 ```
 
-- 形参和实参
+### 形参和实参
 
 形式参数：在定义函数时，函数名后面括号中的参数就是形式参数
 
@@ -690,7 +779,9 @@ odd_or_even(4)
 
 实参和形参的区别，就如同剧本选主角，剧本中的角色相当于形参，而演角色的演员就相当于实参
 
-### 函数返回值
+
+
+## 3. 函数返回值
 
 ```python
 def my_len(str):
@@ -706,7 +797,9 @@ length = my_len("xgglovexbb")
 print(length)
 ```
 
-### 位置参数
+
+
+## 4. 位置参数
 
 实参和形参位置必须一致
 
@@ -716,7 +809,9 @@ def area(height, width):
 print(area(4,3))
 ```
 
-### 关键字参数和默认参数
+
+
+## 5. 关键字参数和默认参数
 
 使用关键字参数调用时，可以任意调换参数传参的位置
 
@@ -744,9 +839,11 @@ func1(2, 3, c=3)
 func1(2, 3, c=3, b=3)
 ```
 
-### 可变参数
 
-- *args
+
+## 6. 可变参数
+
+### *args
 
 ```python
 # * 表示将元素放在一个容器中
@@ -761,7 +858,7 @@ def my_print(a, b, *args):
 		print(*args)  # 以元组形式输入
 ```
 
-- **kwargs
+### **kwargs
 
 函数调用时必须传递关键字参数
 
@@ -775,7 +872,9 @@ show_book(bookname='西游记')
 show_book(bookname='西游记', author='吴承恩')
 ```
 
-### lambda 匿名函数
+
+
+## 7. lambda 匿名函数
 
 函数体可以用一行简单的表达式表示
 
@@ -794,9 +893,9 @@ print(my_sum(2, 3))
 
 
 
-## 04_面向对象编程
+# Part IV 面向对象编程
 
-### 1. 类和对象
+## 1. 类和对象
 
 - 类（Class）**:** 用来描述具有相同的属性和方法的对象的集合。它定义了该集合中每个对象所共有的属性和方法。
 - 对象：类的实例（如对象 object）。
@@ -821,9 +920,9 @@ print(image.shape)
 
 - 已经接触的类：字符串、列表、Nonetype等
 
-### 2. 类的创建
+## 2. 类的创建
 
-创建类的格式：
+### 创建格式
 
 ```python
 class EasyClass():
@@ -835,9 +934,9 @@ class EasyClass():
 
 类名称首字母要大写，建议驼峰式命名
 
-### 3. 类的基本组成
+## 3. 类的基本组成
 
-类属性、对象属性、方法
+### 类属性与对象属性
 
 ```python
 class Family():
@@ -885,13 +984,98 @@ husband.eat('麦当劳')
 wife.play('看展览')
 ```
 
-类属性可以被类和实例化对象调用；对象属性只能被实例化对象调用。
+- 类属性可以被类和实例化对象调用；对象属性只能被实例化对象调用。
 
-**init**()方法为初始化方法，定义对象属性
+### 类方法
 
-self 是所有方法的第一个“参数”
+- \__init__()方法为初始化方法，定义对象属性
 
-### 4. 类的继承
+- self 是所有方法的第一个“参数”
+
+### 私有与共有
+
+- 若要定义私有属性及私有方法，则在方法前加两个下划线，如\__private_attribute和__private_method()
+
+- 但在实际开发中并不建议将属性设置为私有的，因为这会导致子类无法访问。所以通常以单下划线开头来表示属性是受保护的
+- 此时若要修改属性值建议通过使用装饰器来包装getter和setter方法
+
+```python
+class Person(object):
+
+    def __init__(self, name, age):
+        self._name = name
+        self._age = age
+
+    # 访问器 - getter方法
+    @property
+    def name(self):
+        return self._name
+
+    # 访问器 - getter方法
+    @property
+    def age(self):
+        return self._age
+
+    # 修改器 - setter方法
+    @age.setter
+    def age(self, age):
+        self._age = age
+```
+
+- 限定自定义类型的对象只能绑定某些属性，可以通过在类中定义\_\_slots\_\_变量来进行限定。需要注意的是\_\_slots\_\_的限定只对当前类的对象生效，对子类并不起任何作用。
+
+```python
+class Person(object):
+
+    # 限定Person对象只能绑定_name, _age和_gender属性
+    __slots__ = ('_name', '_age', '_gender')
+
+    def __init__(self, name, age):
+        self._name = name
+        self._age = age
+       
+def main():
+    person = Person('王大锤', 22)
+    person._gender = '男'
+```
+
+### 静态方法
+
+方法是类而并不属于对象
+
+```python
+from math import sqrt
+
+class Triangle(object):
+    def __init__(self, a, b, c):
+        self._a = a
+        self._b = b
+        self._c = c
+
+    @staticmethod
+    def is_valid(a, b, c):
+        return a + b > c and b + c > a and a + c > b
+
+    def perimeter(self):
+        return self._a + self._b + self._c
+
+def main():
+    a, b, c = 3, 4, 5
+    # 静态方法和类方法都是通过给类发消息来调用的
+    if Triangle.is_valid(a, b, c):
+        t = Triangle(a, b, c)
+        print(t.perimeter())
+        # 也可以通过给类发消息来调用对象方法但是要传入接收消息的对象作为参数
+        # print(Triangle.perimeter(t))
+    else:
+        print('无法构成三角形.')
+```
+
+
+
+## 4. 继承与多态
+
+### 继承
 
 ```python
 # 定义父类
@@ -922,11 +1106,19 @@ c.childMethod()      # 调用子类的方法
 c.parentMethod()     # 调用父类方法
 ```
 
-如果子类和父类定义了相同的属性或方法，则实例化子类对象执行子类方法时使用的是子类的属性及方法
+- 方法重写——如果子类和父类定义了相同的属性或方法，则实例化子类对象执行子类方法时使用的是子类的属性及方法
 
-## 05_异常处理
+### 多态
 
-### 1. Python常见异常类型
+不同的子类对象会表现出不同的行为，这个就是多态（poly-morphism）
+
+
+
+# Part V 异常处理
+
+## 1. Python常见异常类型
+
+### 常见异常
 
 AssertionError：当 assert 关键字后的条件为假时，程序运行会停止并抛出 AssertionError 异常
 
@@ -942,9 +1134,30 @@ TypeError：不同类型数据之间的无效操作
 
 ZeroDivisionError：除法运算中除数为 0 引发此异常
 
-### 2. 异常捕获
+### 查看异常种类
 
-#### try语句
+#### Exceptions
+
+Python在`exceptions`模块内建了很多的异常类型
+
+```python
+import exceptions
+print dir(exceptions)
+```
+
+具体信息可以查看：[6. Built-in Exceptions — Python 2.7.18 documentation](https://docs.python.org/2.7/library/exceptions.html#bltin-exceptions)
+
+#### BaseException
+
+`BaseException`是最基础的异常类，`Exception`继承了它。`BaseException`除了包含所有的`Exception`外还包含了`SystemExit`，`KeyboardInterrupt`和`GeneratorExit`三个异常。
+
+
+
+## 2. 异常捕获
+
+### try-except-else-finnally 语句
+
+#### try-except
 
 ```python
 try:
@@ -967,6 +1180,31 @@ except :
 print("程序继续运行")
 ```
 
+- `except`语句不是必须的，`finally`语句也不是必须的，但是二者必须要有一个
+- `except`语句可以有多个，Python会按`except`语句的顺序依次匹配你指定的异常，如果异常已经处理就不会再进入后面的`except`语句
+- `except`语句可以以元组形式同时指定多个异常
+- `except`语句后面如果不指定异常类型，则默认捕获所有异常，你可以通过logging或者sys模块获取当前异常
+- 如果要捕获异常后抛出异常，使用`raise`，后面不带任何参数或信息
+
+```python
+def f1():
+    print(1/0)
+
+def f2():
+    try:
+        f1()
+    except Exception as e:
+        raise  # don't raise e !!!
+```
+
+- 使用内置的语法范式代替try/except
+
+如with语句或getattr()（用来获取一个不确定属性）
+
+```python
+name = getattr(test, 'name', 'default')
+```
+
 #### 获取特定异常的有关信息
 
 - args：返回异常的错误编号和描述字符串；
@@ -983,7 +1221,7 @@ except Exception as e:
     print(repr(e))
 ```
 
-#### else语句和finally语句
+#### else-finally语句
 
 - else语句
 
@@ -1007,15 +1245,17 @@ finally :
     print("执行 finally 块中的代码")
 ```
 
-### 3. 引发异常
 
-#### raise语句
+
+## 3. 引发异常
+
+### raise语句
 
 ```python
-raise [exceptionName [(reason)]]
+raise [exceptionName(reason)]
 ```
 
-事实上，raise 语句引发的异常通常用 try except（else finally）异常处理结构来捕获并进行处
+事实上，raise 语句引发的异常通常用 try except（else finally）异常处理结构来捕获并进行处理
 
 ```python
 try:
@@ -1027,9 +1267,18 @@ except ValueError as e:
     print("引发异常：",repr(e))
 ```
 
+### 自定义异常类型
+
+从`Exception`类继承
+
+```python
+class SomeCustomException(Exception):
+    pass
+```
 
 
-## 06_模块和包
+
+# Part VI 模块和包
 
 ### 模块 Module
 
@@ -1125,271 +1374,6 @@ from _dir._path import demo
 
 
 
-# Python进阶篇
-
-## 01_高级函数
-
-### 1. map函数
-
-**语法：**map(function, iterable, ...)
-
-- function：函数
-- iterable：一个或多个序列
-
-接收两个参数，一个是函数，一个是序列，map将传入的函数依次作用到序列的**每个元素**。
-
-```python
-list(map(abs,[-1,3,-5,8]))
->>> [1, 3, 5, 8]
-
-# 使用 lambda 匿名函数
-list(map(lambda x: x ** 3, [1, 2, 3, 4, 5]))
->>> [1, 8, 27, 64, 125]
-
-# 提供了两个列表，对相同位置的列表数据进行相加
-list(map(lambda x, y: x + y, [1, 3, 5, 7, 9], [2, 4, 6, 8, 10]))
->>> [3, 7, 11, 15, 19]
-```
-
-### 2. reduce函数
-
-**语法：**reduce(function,iterable[,initial])
-
-- function：函数
-- iterable：一个或多个序列
-- initial：表示初始值
-
-reduce方法，顾名思义就是减少，假设你有一个由数字组成的可迭代对象，并希望将其缩减为单个值。把一个函数作用在一个序列上，这个函数必须接收两个参数，reduce把结果继续和序列的下一个元素做累积计算
-
-```python
-from functools import reduce
-nums = [6,9,4,2,4,10,5,9,6,9]
-print(nums)
->>> [6, 9, 4, 2, 4, 10, 5, 9, 6, 9]
-# 累加
-print(sum(nums))
->>> 64
-print(reduce(lambda x,y:x+y, nums, initial=3))
->>> 64
-# 累计减法
-reduce(lambda x,y:x-y,[1,2,3,4])
->>> -8
-#累计乘法
-def multi(x,y):
-    return x*y
-reduce(multi,[1,2,3,4])
->>> 24
-reduce(lambda x,y:x*y,[1,2,3,4])
->>> 24
-```
-
-### 3. filter函数
-
-**语法：**filter(function, iterable)
-
-- function：判断函数。
-- iterable ：可迭代对象。
-
-**filter()** 函数用于过滤序列，过滤掉不符合条件的元素，返回由符合条件元素组成的新列表。接收两个参数，第一个为函数，第二个为序列，序列的每个元素作为参数传递给函数进行判断，然后返回 True 或 False，最后将返回 True 的元素放到新列表中。
-
-```python
-fil = filter(lambda x: x>10, [1,11,2,45,7,6,13])
-fil 
->>>  <filter at 0x28b693b28c8> # 可迭代对象，不能直接查看
-
-list(fil)
->>> [11, 45, 13]
-
-def isodd(num):
-    if num % 2 == 0:
-        return True
-    else:
-        return False
-list(filter(isodd,range(1,14)))
->>> [2, 4, 6, 8, 10, 12]
-```
-
-### 4. sorted函数
-
-**语法：**sorted(iterable,  key=None, reverse=False)
-
-- iterable:可迭代对象。
-- key: 主要是用来进行比较的元素，只有一个参数，具体的函数的参数就是取自于可迭代对象中，指定可迭代对象中的一个元素来进行排序。
-- reverse: 排序规则，reverse = True 降序 ， reverse = False 升序（默认）。
-
-**sort 与 sorted 区别**：
-
-sort 是应用在 list 上的方法，sorted 可以对所有可迭代的对象进行排序操作；list 的 sort 方法返回的是对已经存在的列表进行操作，无返回值，而内建函数 sorted 方法返回的是一个新的 list，而不是在原来的基础上进行的操作。
-
-```python
-a = [5,7,6,3,4,1,2]
-b = sorted(a)   # 保留原列表
-a 
->>> [5, 7, 6, 3, 4, 1, 2]
-b
->>> [1, 2, 3, 4, 5, 6, 7]
-
-# 利用key
-L=[('b',2),('a',1),('c',3),('d',4)]
-sorted(L, key=lambda x:x[1])  
->>> [('a', 1), ('b', 2), ('c', 3), ('d', 4)]
-
-# 降序排列
-a = [1,4,2,3,1]
-sorted(a,reverse=True) 
->>> [4, 3, 2, 1, 1]
-c = [[1, 4, 7], [2, 3, 6], [4, 1, 2]]
-print(sorted(c, key=lambda x:x[0]))
-print(sorted(c, key=lambda x:x[1]))
-print(sorted(c, key=lambda x:x[2]))
-
-c = [{'name':'cj', 'age':10}, {'name':'zyt', 'age':8}]
-print(sorted(c, key=lambda x:x['name']))
-print(sorted(c, key=lambda x:x['age']))
-```
-
-
-
-## 02_引用、赋值、浅拷贝与深拷贝
-
-### 1. 基本概念
-
-#### 对象
-
-Python中一切皆对象，可以是变量、函数、类
-
-对象具有三个属性：id、type、value
-
-```python
-a = 123
-print(id(a))
-print(type(a))
-```
-
-### 可变对象与不可变对象
-
-可变对象：列表、字典、集合（可变对象的值能改变，但是身份不变）
-
-不可变对象：数字、字符串、元组（身份和值都不能改变）
-
-```python
-a = 123
-print('id(a)-1', id(a))
-a = 234
-print('id(a)-2', id(a))
-
-b = [1, 2, 3]
-print('id(b)-1', id(b))
-b.append(5)
-print('id(b)-2', id(b))
-b = [1, 2, 3, 4]
-print('id(b)-3', id(b))
-```
-
-当新创建的对象被关联到原来的变量名，旧对象被丢弃，垃圾回收器会在适当的时机回收这些对象
-
-### 2. 引用
-
-每个对象都会在内存中申请开辟一块空间来保存该对象，该对象在内存中所在位置的地址被称为引用。在开发程序时，所定义的变量名实际就对象的地址引用。
-
-```python
-c = 18
-print('id(c)', id(c))
-print('id(18)', id(18))
-```
-
-### 3. 赋值
-
-赋值的本质就是让多个变量同时引用同一个对象的地址。
-
-#### 不可变对象的赋值
-
-在内存中开辟一片空间指向新的对象，原不可变对象不会被修改
-
-```python
-d = 1
-e = d
-print('d, e', d, e)
-print('id(d), id(e)', id(d), id(e))
-d = 2
-print('d, e', d, e)
-print('id(d), id(e)', id(d), id(e))
-```
-
-#### 可变对象的赋值
-
-对可变对象进行赋值时，只是将可变对象中保存的引用指向了新的对象
-
-```python
-f = [1, 2, 3]
-g = f
-print('f, g', f, g)
-print('id(f), id(g)', id(f), id(g))
-f[0] = 2
-print('f, g', f, g)
-print('id(f), id(g)', id(f), id(g))
-```
-
-### 4. 浅拷贝
-
-拷贝一份副本，但原变量改变时，副本未必不会改变
-
-#### 不可变对象的浅拷贝
-
-让多个对象同时指向一个引用，和对象的赋值没区别
-
-```python
-import copy
-h = 3
-i = copy.copy(h)
-print('h, i', h, i)
-print('id(h), id(i)', id(h), id(i))
-h = 4
-print('h, i', h, i)
-print('id(h), id(i)', id(h), id(i))
-```
-
-#### 可变对象的浅拷贝
-
-可变对象的拷贝，会在内存中开辟一个新的空间来保存拷贝的数据。当再改变之前的对象时，对**拷贝之后的对象中的不可变元素**没有任何影响
-
-```python
-import copy
-j = [1, 2, 3]
-k = copy.copy(j)
-print('j, k', j, k)
-print('id(j), id(k)', id(j), id(k))
-j[0] = 3
-print('j, k', j, k)
-print('id(j), id(k)', id(j), id(k))
-```
-
-浅拷贝在拷贝时，只拷贝第一层中的引用，如果元素是可变对象，并且被修改，那么拷贝的对象也会发生变化
-
-```python
-import copy
-j = [1, 2, 3, [1, 2, 3]]
-k = copy.copy(j)
-print('j, k', j, k)
-print('id(j), id(k)', id(j), id(k))
-j[3].append(2)
-print('j, k', j, k)
-print('id(j), id(k)', id(j), id(k))
-```
-
-### 5. 深拷贝
-
-```python
-import copy
-j = [1, 2, 3, [1, 2, 3]]
-k = copy.deepcopy(j)
-print('j, k', j, k)
-print('id(j), id(k)', id(j), id(k))
-j[3].append(2)
-print('j, k', j, k)
-print('id(j), id(k)', id(j), id(k))
-```
-
 
 
 ## 03_文件操作
@@ -1409,11 +1393,17 @@ open(file, mode)
 
 #### **mode常用的模式：**
 
-- r：表示文件只能读取
-- w：表示文件只能写入（原有的东西会被删除）
-- a：表示打开文件，在原有内容的基础上追加内容，在末尾写入
-- r+/w+：表示可以对文件进行读写双重操作
-- b：以二进制读取文件，可加在上述各种模式之后，如 rb
+| 操作模式 | 具体含义                             |
+| -------- | ------------------------------------ |
+| `'r'`    | 只能读取 （默认）                    |
+| `'w'`    | 只能写入（会先截断之前的内容）       |
+| `'x'`    | 只能写入，如果文件已经存在会产生异常 |
+| `'a'`    | 追加，将内容写入到已有文件的末尾     |
+| `'b'`    | 二进制模式                           |
+| `'t'`    | 文本模式（默认）                     |
+| `'+'`    | 更新（既可以读又可以写）             |
+
+
 
 #### close()函数
 
@@ -1587,685 +1577,4 @@ with open(file, 'a') as f:
 ```
 
 
-
-## 04_os模块
-
-### 1. 简介
-
-os模块提供了多数操作系统的功能接口函数。当os模块被导入后，它会自适应于不同的操作系统平台，根据不同的平台进行相应的操作。
-
-dir 目录：“D:\\Python_study\\module8\\ab\\”
-
-path 路径："D:\\Python_study\\module8\\ab\\cd.py"
-
-### 2. os 模块使用
-
-#### os模块——系统操作
-
-- os.sep
-
-获取系统路径分割符
-
-- os.name
-
-获取当前操作系统的名字，如Windows 返回 'nt'; Linux 返回'posix’
-
-- os.getenv('path')
-
-读取 path 环境变量
-
-- os.getcwd()
-
-获取当前工作的目录
-
-#### os模块——目录操作（增删改查）
-
-- os.listdir(dir)
-
-列出目录下所有的文件和目录名（以列表的形式全部列举出来）
-
-若不给参数，则会在执行文件的dir下去枚举
-
-```python
-# 假设当前目录为"D:\\python_study\\folder1"
-print(os.listdir())  # 输出"D:\\python_study\\folder1"目录下所有的文件和目录名
-print(os.listdir(r'D:\\python_study\\folder2'))  # 输出"D:\\python_study\\folder2"目录下所有的文件和目录名
-```
-
-- os.mkdir(dir)
-
-创建目录
-
-- os.rmdir(dir)
-
-删除**空目录**（目录中有文件则无法删除）
-
-- os.makedirs(dir)
-
-递归创建目录，若目录全部存在，则创建失败
-
-- os.removedirs(dir)
-
-递归删除**空目录**，若目录中有文件则无法删除
-
-- os.chdir(dir)
-
-改变当前工作目录到指定目录
-
-- os.remove(path)
-
-删除文件
-
-- os.rename(old_path_or_dir, new_path_or_dir)
-
-对目录或文件重命名，若重命名后文件存在则重命名失败
-
-#### os.path模块——判断
-
-- os.path.isfile(path)
-
-判断对象是否是文件
-
-- os.path.isdir(dir)
-
-判断对象是否是目录
-
-- os.path.exists(path)
-
-检验指定的对象是否存在
-
-#### os.path模块——目录操作
-
-- os.path.basename(path)
-
-返回文件名
-
-- os.path.dirname(path)
-
-获得绝对目录，path本身必须是一个绝对路径
-
-- os.path.getsize(path)
-
-获得文件的大小，如果为目录，返回0
-
-- os.path.abspath(path)
-
-返回文件的绝对路径，path本身必须是一个相对路径
-
-- os.path.split(path)
-
-返回路径的目录和文件名
-
-- os.path.splitext(path)
-
-返回路径的文件名和后缀
-
-- os.path.join(path, name)
-
-连接目录和文件名，与 os.path.split(path) 相对
-
-#### 其他
-
-- os.system(cmd)
-
-执行shell命令
-
-```python
-"""
-删除一个目录及目录下的所有文件
-"""
-import os
-
-###### 方法1：逐个删除
-
-# 1. 删除目录下的所有文件
-os.remove(r'D:\\Python_study\\module8\\ab\\ab.py')
-os.remove(r'D:\\Python_study\\module8\\ab\\cd.py')
-# 2. 删除目录
-os.rmdir('ab')
-
-###### 方法2：批量删除
-
-dir_name = r'D:\\Python_study\\module8\\folder3'
-file_list = os.listdir(dir_name)
-# print(file_list)
-for i in file_list:
-    path = os.path.join(dir_name, i)
-    # print(path)
-    if os.path.isfile(path):
-        os.remove(path)
-
-    else:
-        new_file_list = os.listdir(path)
-        # print(new_file_list)
-        for j in new_file_list:
-            new_path = os.path.join(path, j)
-            print(new_path)
-            os.remove(new_path)
-        os.rmdir(path)
-
-os.rmdir(dir_name)
-
-###### 方法2改进：批量删除（递归函数）
-
-def remove_all(dir_name):
-    file_list = os.listdir(dir_name)
-
-    for i in file_list:
-        path = os.path.join(dir_name, i)
-
-        if os.path.isfile(path):
-            os.remove(path)
-
-        else:
-            remove_all(path)
-            # os.remove(path)
-    os.rmdir(dir_name)
-
-remove_all(r'D:\\Python_study\\module8\\folder3')
-```
-
-
-
-## 05_shutil 模块
-
-### 1. 简介
-
-主要用于文件或目录的复制或归档的操作
-
-### 2. shutil 模块使用
-
-#### 文件复制
-
-- **shutil.copyfile(src, dst)**
-
-src 和 dst 均为文件路径，非目录
-
-若 dst 已存在则直接覆盖
-
-保证文件后缀一致
-
-```python
-import shutil
-shutil.copyfile('C:/a.txt', 'D:/b.txt')
-```
-
-- **shutil.copy(src, dst)**
-
-src 为文件路径，dst 可为文件或目录
-
-若 dst 已存在则直接覆盖
-
-若给的是目录，则保留原来的文件名
-
-- **shutil.copy2(src, dst)**
-
-和 copy 操作类似，但同时拷贝了原文件的元数据（包括最后修改时间等）
-
-- **shutil.copytree(olddir, newdir, symlinks=False, ignore=None, copy_function=copy2, ignore_dangling_symlinks=False, dirs_exist_ok=False)**
-
-拷贝目录下的所有文件（空目录也不会报错）
-
-若 newdir 存在，则无法覆盖
-
-- **shutil.copyfileobj(open(src, 'r'), open(dst, 'w’))**
-
-文件内容复制
-
-#### 文件移动/重命名
-
-- **shutil.move(src, dst)**
-
-将文件或目录从 src 移动到 dst
-
-1. dst可以是一个文件路径，也可以是一个文件夹，若给了文件名，则可以重命名
-2. 若 dst 目录中存在 src 文件，则不可覆盖；若 dst 为文件路径，则可以覆盖
-3. 若 dst 目录中存在 src 目录，则不可覆盖（文件夹无法重命名）
-
-#### 文件删除
-
-- **shutil.rmtree(dir)**
-
-移除目录，不论是否为空目录
-
-#### 归档和解包
-
-- **shutil.make_archive(base_name, format, base_dir)**
-
-归档函数，将多个文件合并到一个文件中
-
-base_name：压缩包的文件名，也可以是压缩包的路径；只是文件名时，则保存至当前目录下，否则保存至指定路径；
-
-format：压缩包种类，“zip”, “tar”, “bztar”，“gztar”；
-
-base_dir：指定要压缩文件的路径，可以指定路径下的文件名，也可以指定路径；
-
-```python
-import shutil
-# 将path_1处的文件归档到path_2处
-path_1 = r'C:\\Users\\hasee\\Desktop\\test007'
-path_2 = r'C:\\Users\\hasee\\Desktop\\new'
-new_path = shutil.make_archive(path_2, 'zip', path_1)
-print(new_path)
---->C:\\Users\\hasee\\Desktop\\new.zip
-```
-
-此操作可能会出现递归拷贝压缩导致文件损坏
-
-- **shutil.unpack_archive(filename, extract_dir)**
-
-解包函数，将归档的文件进行释放
-
-filename：需要解包的文件，需要写明文件的后缀
-
-extract_dir：解包后文件存放位置
-
-- **shutil.get_archive_formats()**
-
-获取当前系统已注册的归档文件格式（后缀）
-
-- **shutil.get_unpack_formats()**
-
-获取当前系统已经注册的解包文件格式(后缀)
-
-
-
-## 06_time 模块
-
-### 1. 简介
-
-在Python中，与**时间处理**相关的模块有：time、datetime 以及 calendar 。
-
-### 2. Python 中的时间表示方式
-
-- 时间戳
-
-时间戳表示是从1970年1月1号 00:00:00开始到现在按秒计算的偏移量
-
-- 元组方式：struct_time元组共有9个元素
-
-```python
-tm_year ：年
-tm_mon ：月（1-12）
-tm_mday ：日（1-31）
-tm_hour ：时（0-23）
-tm_min ：分（0-59）
-tm_sec ：秒（0-59）
-tm_wday ：星期几（0-6,0表示周日）
-tm_yday ：一年中的第几天（1-366）
-tm_isdst ：是否是夏令时（默认为-1）
-```
-
-- UTC（世界协调时），就是格林威治天文时间，即世界标准时间。在中国为UTC+8、DST夏令时
-
-### 3. time 模块使用
-
-#### 返回当前时间
-
-- **time.time()**
-
-返回当前时间的时间戳
-
-- **time.localtime()**
-
-返回当前时间的 struct_time
-
-- **time.gmtime()**
-
-返回当前时间的 UTC 时间（结果也为 struct_time 结构）
-
-#### 时间类型转化——时间戳、元组、字符串
-
-- **time.localtime(secs)**
-
-将时间戳转化为 struct_time
-
-- **time.gmtime(secs)**
-
-将时间戳转化为 UTC 的 struct_time
-
-- **time.mktime(t)**
-
-将 struct_time 转化为时间戳
-
-- **time.asctime([t])**
-
-将 struct_time 转化为‘Sun Aug 23 14:31:59 2015’ 这种形式，如果未指定参数，会将time.localtime()作为参数传入
-
-- **time.ctime([secs])**
-
-把一个时间戳转化为 time.asctime() 的形式。如果未指定参数，将会默认使用time.time()作为参数。
-
-- **time.strftime(format[, t])**
-
-把一个代表时间的 struct_time 转化为格式化的时间字符串，格式由参数format决定。如果 t 未指定，将传入time.localtime()。
-
-```python
-%a  本地星期名称的简写（如星期四为Thu）      
-%A  本地星期名称的全称（如星期四为Thursday）      
-%b  本地月份名称的简写（如八月份为agu）    
-%B  本地月份名称的全称（如八月份为august）       
-%c  本地相应的日期和时间的字符串表示（如：15/08/27 10:20:06）       
-%d  一个月中的第几天（01 - 31）  
-%f  微妙（范围0.999999）    
-%H  一天中的第几个小时（24小时制，00 - 23）       
-%I  第几个小时（12小时制，0 - 11）       
-%j  一年中的第几天（001 - 366）     
-%m  月份（01 - 12）    
-%M  分钟数（00 - 59）       
-%p  本地am或者pm的相应符      
-%S  秒（00 - 61）    
-%U  一年中的星期数。（00 - 53）星期天是一个星期的开始，第一个星期天之前的所有天数都放在第0周。     
-%w  一个星期中的第几天（0 - 6，0是星期天）    
-%W  和%U基本相同，不同的是%W以星期一为一个星期的开始。    
-%x  本地相应日期字符串（如15/08/01）     
-%X  本地相应时间字符串（如08:08:10）     
-%y  去掉世纪的年份（00 - 99）两个数字表示的年份       
-%Y  完整的年份（4个数字表示年份）
-%z  与UTC时间的间隔（如果是本地时间，返回空字符串）
-%Z  时区的名字（如果是本地时间，返回空字符串）       
-%%  ‘%’字符
->>> time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-'2022-01-04 10:38:14'
-```
-
-- **time.strptime(string[,format])**
-
-time.strftime() 函数的逆操作，根据指定的格式把一个时间字符串解析为时间元组，返回的是struct_time对象。
-
-```python
->>> stime = "2015-08-24 13:01:30"
->>> formattime = time.strptime(stime,"%Y-%m-%d %H:%M:%S")
->>> print formattime
-time.struct_time(tm_year=2015, tm_mon=8, tm_mday=24, tm_hour=13, tm_min=1, tm_sec=30, tm_wday=0, tm_yday=236, tm_isdst=-1)
-```
-
-#### 其他
-
-- **time.sleep(s)**
-
-程序休息 s 秒
-
-
-
-## 07_re模块
-
-### 1. 正则表达式的作用
-
-匹配文本
-
-### 2. re模块简介
-
-- re模块常用函数：
-
-re.match()
-
-re.search()
-
-re.findall()
-
-re.sub()
-
-re.split()
-
-- 以上函数使用语法：
-
-re.match(pattern, string, flags)
-
-string —— 要匹配的字符串
-
-pattern —— 正则表达式（匹配规则）
-
-flags —— 匹配方式（是否区分大小写、多行匹配）
-
-- flags标记
-
-re.I 忽略大小写（常用）
-
-re.L 做本地化识别（locale-aware）匹配
-
-re.M 多行匹配，影响 ^ 和 $
-
-re.S 使 . 匹配包括换行在内的所有字符
-
-re.U 根据Unicode字符集解析字符。这个标志影响 \w, \W, \b, \B.
-
-re.X 该标志通过给予更灵活的格式，以便将正则表达式写得更易于理解。
-
-### 3. match函数
-
-match()函数从指定字符串的开始位置进行匹配，开始位置匹配成功则继续匹配，否则输出None。
-
-结果是返回一个正则匹配对象。
-
-1. group()方法获取匹配内容
-2. span()方法获取匹配位置（开始及结束的索引位置）
-
-```python
-import re
-content = 'hello world'
-result = re.match('heli', content)
-print(result)
-# result.group(), result.span()
-```
-
-```python
-content = 'heiio world'
-result = re.match('he.', content)  # . 表示匹配任意字符（除换行符\n）
-result.group(), result.span()
-```
-
-```python
-content = 'hello world'
-result = re.match('he[a-m]', content)  # [] 表示匹配的字符，常见的有[a-z][A-Z][0-9]
-result.group(), result.span()
-```
-
-```python
-# 若无匹配内容，则返回None
-content = 'hello world'
-result = re.match('he[a-c]', content)
-print(result)
-```
-
-```python
-content = """heeeeeeeecj"""
-result1 = re.match('he*cj', content)  # * 表示对前一个字符匹配零次或任意次
-print('result1:', result1)
-```
-
-```python
-# flags使用——re.S 将多行看成是一行匹配
-content = """hello world
-hello zyt
-hello cj
-"""
-result1 = re.match('he.*cj', content)  # * 表示对前一个字符匹配零次或任意次
-print('result1:', result1)
-
-result2 = re.match('he.*cj', content, re.S)
-print('result2:', result2)
-print('result2.group:', result2.group())
-print('result2.span:', result2.span())
-```
-
-```python
-# flags使用——re.I 不区分大小写
-content = """hello world"""
-result1 = re.match('HE', content)  # * 表示对前一个字符匹配零次或任意次
-print('result1:', result1)
-
-result2 = re.match('He', content, re.I)
-print('result2:', result2)
-print('result2.group:', result2.group())
-print('result2.span:', result2.span())
-```
-
-```python
-# group()方法获取内容的时候，索引符号从1开始
-content = 'hello world, your name is zyt, my name is cj'
-result = re.match('(he.*o).*(yo.*e).*(my.*e).*', content)
-print(result)
-print(result.group())  # 等价于result.group(0)，返回匹配正则表达式的全部内容
-print(result.group(1))  # 返回匹配正则表达式的第一部分内容（即第一个括号），group(N)中的参数N不能超过正则表达式中括号的个数
-print(result.group(2))
-print(result.group(3))
-```
-
-### 4. search函数
-
-re.search()方法扫描整个字符串，返回的是第一个成功匹配的字符串，否则就返回None
-
-```python
-content = 'QQ: 1993466, WeChat: 1993466'
-result = re.search('QQ: [0-9]*', content)
-print(result)
-print(result.group())
-print(result.span())
-```
-
-### 5. findall函数
-
-re.findall()扫描整个字符串，通过列表形式返回所有符合的字符串
-
-```python
-content = 'No.1, QQ: 2711090036, WeChat: 19921275330; No.2, qq: 27110, WeChat: 1992127'
-result = re.findall('QQ: ([0-9]*)', content, re.I)
-print(result)
-```
-
-```python
-content = """No.1, QQ: 1993466, WeChat: 1993466, 
-No.2, qq: 1993466, wechat: 1993466,
-No.3, qq: 1993466, wechat: 1993466,
-"""
-result = re.findall(': (.*),.*: (.*),', content)
-print(result)
-```
-
-### 6. sub函数
-
-re.sub()方法是用来替换字符串中的某些内容
-
-```python
-# 将空格替换成-
-content = 'My name is Anderw     Chen.'
-# result = content.replace(' ', '-')
-result = re.sub('\s+', '-', content)  # \s 表示空格；+ 表示前一个字符匹配一次或多次
-print(result)
-```
-
-### 7. 正则表达式匹配规则
-
-#### 贪婪模式与非贪婪模式
-
-贪婪模式在整个表达式匹配成功的前提下，尽可能多的匹配；而非贪婪模式在整个表达式匹配成功的前提下，尽可能少的匹配
-
-. 表示匹配除换行符外的任意字符
-
-\*表示匹配0次或多次
-
-? 表示匹配0次或1次
-
-.\*? —— 非贪婪模式
-
-.\* —— 贪婪模式
-
-```python
-content = 'abbbbaaaabbbabbba'
-result1 = re.findall('a.*b', content)
-print('result1:', result1)
-result2 = re.findall('a.*?b', content)
-print('result2:', result2)
-result1: ['abbbbaaaabbbabbb']
-result2: ['ab', 'aaaab', 'ab']
-```
-
-#### 预定义字符
-
-\d  数字
-\D  非数字
-\s  空白字符，包括空格、\t、\n等
-\S  非空白字符
-\w  单词字符，包括0-9a-zA-Z
-\W  非单词字符
-
-#### 数量词
-
-\* 匹配0次及以上
-
-\+ 匹配1次及以上
-
-?  匹配0次或1次
-
-{m}  匹配m次
-
-{m,n}  匹配m次到n次
-
-```python
-content = """No.1, QQ: 66666, WeChat: 2556430, 
-No.2, qq: 754365427, wechat: 1993466,
-No.3, qq: 3426476403, wechat: 199,
-"""
-result = re.findall('QQ: [0-9]{6,12}', content, re.I)
-print(result)
-['QQ: 123456', 'qq: 271109003']
-```
-
-#### 边界匹配符
-
-^  匹配字符串开头（多行模式时匹配每一行开头）
-
-$  匹配字符串结尾（多行模式时匹配每一行结尾）
-
-\A  匹配开头
-
-\Z  匹配结尾
-
-```python
-content = 'hello world'
-result = re.match('.*d.*', content)
-print(result)
-<re.Match object; span=(0, 11), match='hello world'>
-```
-
-#### 逻辑分组
-
-(...)  分组
-
-a|b  或（优先匹配左侧，注意在[]内则表示其本身）
-
-```python
-content = """No.1, QQ: 1993466, WeChat: 1993466, 
-No.2, qq: 1993466, 微信: 1993466,
-No.3, Qq: 1993466, wechat: 1993466,
-"""
-result = re.findall('(WeChat|微信|wechat): ([0-9]*)', content)
-print(result)
-[('WeChat', '19921275330'), ('微信', '1992127'), ('wechat', '199')]
-```
-
-
-
-# 其他
-
-## Conda常用命令
-
-- 新建环境
-
-conda create -n name python=3.7 -y
-
-- 删除环境
-
-conda remove -n name --all
-
-- 查看环境
-
-conda info -e
-
-- 激活环境
-
-conda activate name
-
-conda deactivate
 
