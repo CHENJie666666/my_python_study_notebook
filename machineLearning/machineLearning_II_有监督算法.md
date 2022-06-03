@@ -1,14 +1,8 @@
-# 机器学习笔记
-
-## 说明
-
-1. 代码部分主要借鉴了[luwill/Machine_Learning_Code_Implementation: Mathematical derivation and pure Python code implementation of machine learning algorithms. (github.com)](https://github.com/luwill/Machine_Learning_Code_Implementation)项目的开源代码，推荐大家去看louwill大佬的新书《机器学习 公式推导与代码实现》
-
-2. 其余内容则为Coursera、CSDN等网站上学习整理所得
-
 # 有监督算法篇
 
-## 线性回归
+# 线性回归
+
+## 多元线性回归模型
 
 ### 1. 原理
 
@@ -364,27 +358,319 @@ for training, validation in k_fold_cross_validation(data, 5):
 
 
 
-## 逻辑斯蒂回归
 
-Logistic Regression
+
+## Lasco 回归
 
 ### 1. 原理
 
+对多元线性回归的损失加上L1范式惩罚，通过加入惩罚项，将一些不重要的自变量系数调整为0，从而达到剔除变量的目的
+
 #### 假设函数
 
-$h_\theta(x)=g(\theta^Tx)=\frac{1}{1+e^{-(\theta^Tx)}}$
+$h_\theta(x)=\theta_0 + \theta_1x$
 
 #### 损失函数
 
+普通最小二乘法
+
+$L(\theta_0,\theta_1)=\frac{1}{2m}\sum_{i=1}^m(h_\theta(x^{(i)})-y^{(i)})^2+\lambda|\theta_1|$
+
+### 2. skleran-API
+
+#### 参数说明
+
+```
+class sklearn.linear_model.Lasso(alpha=1.0, *, fit_intercept=True, normalize='deprecated', precompute=False, copy_X=True, max_iter=1000, tol=0.0001, warm_start=False, positive=False, random_state=None, selection='cyclic')
+```
+
+| 参数          | 说明                                                         |
+| ------------- | ------------------------------------------------------------ |
+| fit_intercept | bool型，选择是否需要计算截距，中心化的数据可以选择false      |
+| normalize     | bool型，选择是否需要标准化，减去均值再除以L2范式（将被删除） |
+| copy_X        | bool型，选择是否复制原数据，如果为false则原数据会因标准化而被覆盖 |
+| positive      | bool型，是否强制系数为正值                                   |
+| alpha         | float型，正则化系数，数值越大，则对复杂模型的惩罚力度越大    |
+| precompute    | 是否提前计算Gram矩阵来加速计算                               |
+| selection     | str型，指定每次迭代时，选择权重向量的哪个分量进行更新<br />"random"：随机选择<br />"cyclic"：循环选择 |
+
+#### 属性
+
+| 属性             | 说明                                         |
+| ---------------- | -------------------------------------------- |
+| coef_            | array，系数                                  |
+| intercept_       | float（0.0）或array，偏置                    |
+| n_features_in_   | int，输入特征数                              |
+| feature_names_in | array，输入特征名称                          |
+| n_iter_          | int或list，迭代次数                          |
+| dual_gap_        | float或ndarray，优化结束后的对偶间隙（没懂） |
+| sparse_coef_     | array，系数矩阵的稀疏表示                    |
+
+#### 方法
+
+| 方法                                          | 说明                             |
+| --------------------------------------------- | -------------------------------- |
+| fit(X, y[, sample_weight])                    | 拟合模型                         |
+| get_params([deep])                            | 获取estimator的参数              |
+| predict(X)                                    | 预测                             |
+| score(X, y[, sample_weight])                  | 返回相关系数                     |
+| set_params(**params)                          | 设置estimator的参数              |
+| path(X, y, *[, l1_ratio, eps, n_alphas, ...]) | 使用坐标下降计算elastic net path |
+
+#### 实例
+
+```python
+# 导入线性模型模块
+from sklearn import linear_model
+# 创建lasso模型实例
+sk_lasso = linear_model.Lasso(alpha=0.1)
+# 对训练集进行拟合
+sk_lasso.fit(X_train, y_train)
+# 打印模型相关系数
+print("sklearn Lasso intercept :", sk_lasso.intercept_)
+print("\nsklearn Lasso coefficients :\n", sk_lasso.coef_)
+print("\nsklearn Lasso number of iterations :", sk_lasso.n_iter_)
+```
+
+### 3. 评估指标
+
+
+
+### 4. Numpy算法
+
+```python
+import numpy as np
+import pandas as pd
+
+data = np.genfromtxt('example.dat', delimiter = ',')
+
+# 选择特征与标签
+x = data[:,0:100] 
+y = data[:,100].reshape(-1,1)
+# 加一列
+X = np.column_stack((np.ones((x.shape[0],1)),x)) # 为什么要加一列
+
+# 划分训练集与测试集
+X_train, y_train = X[:70], y[:70]
+X_test, y_test = X[70:], y[70:]
+
+# 定义参数初始化函数
+def initialize(dims):
+    w = np.zeros((dims, 1))
+    b = 0
+    return w, b
+
+# 定义符号函数
+def sign(x):
+    if x > 0:
+        return 1
+    elif x < 0:
+        return -1
+    else:
+        return 0
+
+# 利用numpy对符号函数进行向量化
+vec_sign = np.vectorize(sign)
+
+# 定义lasso损失函数
+def l1_loss(X, y, w, b, alpha):
+    num_train = X.shape[0]
+    num_feature = X.shape[1]
+    y_hat = np.dot(X, w) + b
+    loss = np.sum((y_hat-y)**2)/num_train + np.sum(alpha*abs(w))
+    dw = np.dot(X.T, (y_hat-y)) /num_train + alpha * vec_sign(w)
+    db = np.sum((y_hat-y)) /num_train
+    return y_hat, loss, dw, db
+
+# 定义训练过程
+def lasso_train(X, y, learning_rate=0.01, epochs=300):
+    loss_list = []
+    w, b = initialize(X.shape[1])
+    for i in range(1, epochs):
+        y_hat, loss, dw, db = l1_loss(X, y, w, b, 0.1)
+        w += -learning_rate * dw
+        b += -learning_rate * db
+        loss_list.append(loss)
+        
+        if i % 300 == 0:
+            print('epoch %d loss %f' % (i, loss))
+        params = {'w': w, 'b': b}
+        grads = {'dw': dw, 'db': db}
+    return loss, loss_list, params, grads
+
+# 执行训练示例
+loss, loss_list, params, grads = lasso_train(X_train, y_train, 0.01, 3000)
+
+# 定义预测函数
+def predict(X, params):
+    w = params['w']
+    b = params['b']
+    
+    y_pred = np.dot(X, w) + b
+    return y_pred
+
+y_pred = predict(X_test, params)
+
+from sklearn.metrics import r2_score
+r2_score(y_pred, y_test)
+```
+
+
+
+## Ridge 回归
+
+### 1. 原理
+
+对多元线性回归的损失加上L2范式惩罚，通过加入惩罚项，将一些不重要的自变量系数调整为接近0
+
+### 2. sklearn-API
+
+#### 参数说明
+
+```
+class sklearn.linear_model.Ridge(alpha=1.0, *, fit_intercept=True, normalize='deprecated', copy_X=True, max_iter=None, tol=0.001, solver='auto', positive=False, random_state=None)
+```
+
+| 参数          | 说明                                                         |
+| ------------- | ------------------------------------------------------------ |
+| fit_intercept | bool型，选择是否需要计算截距，中心化的数据可以选择false      |
+| normalize     | bool型，选择是否需要标准化，减去均值再除以L2范式（将被删除） |
+| copy_X        | bool型，选择是否复制原数据，如果为false则原数据会因标准化而被覆盖 |
+| positive      | bool型，是否强制系数为正值                                   |
+| alpha         | float型，正则化系数，数值越大，则对复杂模型的惩罚力度越大    |
+| solver        | str型，计算求解方法<br />'auto'：根据数据类型自动选择求解器<br />'svd'：利用X的奇异值分解来计算系数<br />'cholesky'：使用scipy.linalg.solve求解<br />'lsqr'：使用专用正规化最小二乘的常规scipy.sparse.linalg.lsqr<br />'sparse_cg'：使用在scipy.sparse.linalg.cg中发现的共轭梯度求解器<br />'sag'：随机平均梯度下降，在大型数据上优化较快<br />'saga'：随机平均梯度下降改进，在大型数据上优化较快<br />'lbfgs'：拟牛顿法 |
+
+#### 属性
+
+| 属性             | 说明                      |
+| ---------------- | ------------------------- |
+| coef_            | array，系数               |
+| intercept_       | float（0.0）或array，偏置 |
+| n_features_in_   | int，输入特征数           |
+| feature_names_in | array，输入特征名称       |
+| n_iter_          | int或list，迭代次数       |
+
+#### 方法
+
+| 方法                         | 说明                |
+| ---------------------------- | ------------------- |
+| fit(X, y[, sample_weight])   | 拟合模型            |
+| get_params([deep])           | 获取estimator的参数 |
+| predict(X)                   | 预测                |
+| score(X, y[, sample_weight]) | 返回相关系数        |
+| set_params(**params)         | 设置estimator的参数 |
+
+#### 实例
+
+```python
+# 导入线性模型模块
+from sklearn import linear_model
+# 创建ridge模型实例
+sk_ridge = linear_model.Ridge(alpha=0.1)
+# 对训练集进行拟合
+sk_ridge.fit(X_train, y_train)
+# 打印模型相关系数
+print("sklearn Ridge intercept :", sk_ridge.intercept_)
+print("\nsklearn Ridge coefficients :\n", sk_ridge.coef_)
+print("\nsklearn Ridge number of iterations :", sk_ridge.n_iter_)
+```
+
+### 3. 评估指标
+
+
+
+
+
+
+
+### 4. Numpy 算法
+
+```python
+import numpy as np
+import pandas as pd
+
+data = np.genfromtxt('example.dat', delimiter = ',')
+# 选择特征与标签
+x = data[:,0:100] 
+y = data[:,100].reshape(-1,1)
+X = np.column_stack((np.ones((x.shape[0],1)),x))
+
+# 划分训练集与测试集
+X_train, y_train = X[:70], y[:70]
+X_test, y_test = X[70:], y[70:]
+
+# 定义参数初始化函数
+def initialize(dims):
+    w = np.zeros((dims, 1))
+    b = 0
+    return w, b
+
+# 定义ridge损失函数
+def l2_loss(X, y, w, b, alpha):
+    num_train = X.shape[0]
+    num_feature = X.shape[1]
+    y_hat = np.dot(X, w) + b
+    loss = np.sum((y_hat-y)**2)/num_train + alpha*(np.sum(np.square(w)))
+    dw = np.dot(X.T, (y_hat-y)) /num_train + 2*alpha*w
+    db = np.sum((y_hat-y)) /num_train
+    return y_hat, loss, dw, db
+
+# 定义训练过程
+def ridge_train(X, y, learning_rate=0.01, epochs=300):
+    loss_list = []
+    w, b = initialize(X.shape[1])
+    for i in range(1, epochs):
+        y_hat, loss, dw, db = l2_loss(X, y, w, b, 0.1)
+        w += -learning_rate * dw
+        b += -learning_rate * db
+        loss_list.append(loss)
+        
+        if i % 100 == 0:
+            print('epoch %d loss %f' % (i, loss))
+        params = {'w': w, 'b': b}
+        grads = {'dw': dw, 'db': db}
+    return loss, loss_list, params, grads
+
+# 执行训练示例
+loss, loss_list, params, grads = ridge_train(X_train, y_train, 0.01, 1000)
+
+# 定义预测函数
+def predict(X, params):
+    w = params['w']
+    b = params['b']
+    
+    y_pred = np.dot(X, w) + b
+    return y_pred
+
+y_pred = predict(X_test, params)
+
+from sklearn.metrics import r2_score
+r2_score(y_pred, y_test)
+```
+
+
+
+# 逻辑斯蒂回归
+
+Logistic Regression
+
+## 1. 原理
+
+### 假设函数
+
+$h_\theta(x)=g(\theta^Tx)=\frac{1}{1+e^{-(\theta^Tx)}}$
+
+### 损失函数
+
 $L(\theta)=\frac{1}{m}[\sum_{i=1}^my^{(i)}logh_\theta(x^{(i)})+(1-y^{(i)})log(1-h_\theta(x^{(i)})]$
 
-#### 优化过程
+### 优化过程
 
 - 梯度下降法
 
 $\theta_j:=\theta_j-\alpha\sum_{i=1}^m(h_\theta(x^{(i)})-y^{(i)})x_j^{(i)}$
 
-#### 特点
+### 特点
 
 - 线性回归+sigmoid()
 
@@ -396,9 +682,9 @@ $\theta_j:=\theta_j-\alpha\sum_{i=1}^m(h_\theta(x^{(i)})-y^{(i)})x_j^{(i)}$
 
 
 
-### 2. sklearn-API
+## 2. sklearn-API
 
-#### 参数说明
+### 参数说明
 
 ```
 class sklearn.linear_model.LogisticRegression(penalty='l2', *, dual=False, tol=0.0001, C=1.0, fit_intercept=True, intercept_scaling=1, class_weight=None, random_state=None, solver='lbfgs', max_iter=100, multi_class='auto', verbose=0, warm_start=False, n_jobs=None, l1_ratio=None)
@@ -418,7 +704,7 @@ class sklearn.linear_model.LogisticRegression(penalty='l2', *, dual=False, tol=0
 | warm_start        | bool，当 warm_start 为true时，现有的拟合模型属性用于在后续调用拟合中初始化新模型。<br />当在同一数据集上重复拟合估计器时，但对于多个参数值（例如在网格搜索中找到最大化性能的值），可以重用从先前参数值中学习的模型的各个方面，从而节省时间。 |
 | l1_ratio          | float，在0-1之间，仅当penalty='elasticnet'时使用，           |
 
-#### 属性
+### 属性
 
 | 属性             | 说明                                                      |
 | ---------------- | --------------------------------------------------------- |
@@ -429,7 +715,7 @@ class sklearn.linear_model.LogisticRegression(penalty='l2', *, dual=False, tol=0
 | feature_names_in | array，输入特征名称                                       |
 | n_iter_          | ndarry，迭代次数（当solver为'liblinear'时会返回多个元素） |
 
-#### 方法
+### 方法
 
 | 方法                         | 说明                                                         |
 | ---------------------------- | ------------------------------------------------------------ |
@@ -444,7 +730,7 @@ class sklearn.linear_model.LogisticRegression(penalty='l2', *, dual=False, tol=0
 | densify()                    | 将coef_ 矩阵转化为ndarray（在已经稀疏化的模型上使用才有效果） |
 | sparsify()                   | 将coef_ 矩阵转换为scipy.sparse矩阵，对于L1正则化模型，它比通常的numpy.ndarray表示更节省内存和存储 |
 
-#### 实例
+### 实例
 
 ```python
 from sklearn.linear_model import LogisticRegression as LR
@@ -469,9 +755,11 @@ cross_val_score(lrl1, x_test, y_test, cv=10).mean()   # 交叉验证
 x_embedded = SelectFromModel(lrl1, threshold=i, norm_order=1).fit_transform(x_test, y_test)    # 使用x_embedded进行特征选择（删除0值）
 ```
 
-### 3. 评估指标
 
-#### 混淆矩阵
+
+## 3. 评估指标
+
+### 混淆矩阵
 
 <img src="C:\Users\27110\AppData\Roaming\Typora\typora-user-images\image-20220515201330249.png" alt="image-20220515201330249" style="zoom:100%;" />
 
@@ -499,21 +787,23 @@ metrics.precision_recall_curve      # 精确度-召回率曲线（不同阈值�
 metrics.f1_score            # F1分数
 ```
 
-#### ROC曲线
+### ROC曲线
 
-- ROC定义
+#### ROC定义
 
 ROC全称是“受试者工作特征”（Receiver Operating Characteristic）
 
-- ROC计算方法
+#### ROC计算方法
 
-以假阳率（FPR）为横坐标，以真阳率（TPR）为纵坐标
+- 以假阳率（FPR）为横坐标，以真阳率（TPR）为纵坐标
 
 FPR = FP / (FP + TN)  指分类器预测的正类中实际负实例占所有负实例的比例
 
 TPR = TP / (TP + FN)  指分类器预测的正类中实际正实例占所有正实例的比例
 
-希望FPR越小越好，TPR越大越好
+- 希望FPR越小越好，TPR越大越好
+
+- ROC曲线
 
 在二分类模型中，最后输出是一个概率值，需要一个阈值，超过这个阈值则归类为1，低于这个阈值就归类为0。所以当阈值从0开始慢慢移动到1的过程，就会形成很多对（FPR, TPR），将它们画在坐标系上即得到ROC曲线
 <img src="C:\Users\27110\AppData\Roaming\Typora\typora-user-images\image-20220515202316336.png" alt="image-20220515202316336" style="zoom:50%;" />
@@ -558,7 +848,7 @@ recall和fpr差距最大的点，约登指数
 
 
 
-### 4. 解决样本不平衡问题
+## 4. 解决样本不平衡问题
 
 通常采用上采样
 
@@ -573,9 +863,9 @@ x, y = sm.fit_sample(x, y)
 
 
 
-### 5. Numpy算法
+## 5. Numpy算法
 
-#### 训练和预测
+### 训练和预测
 
 ```python
 import numpy as np
@@ -723,7 +1013,7 @@ def accuracy(y_test, y_pred):
 accuracy_score_test = accuracy(y_test, y_prediction)
 ```
 
-#### 绘制决策边界
+### 绘制决策边界
 
 ```python
 import matplotlib.pyplot as plt
@@ -771,384 +1061,375 @@ plot_logistic(X_train, y_train, params)
 
 
 
-## Lasco 回归
+# k-近邻算法
 
-### 1. 原理
+K-Nearest Neighbors, KNN
 
-对多元线性回归的损失加上L1范式惩罚，通过加入惩罚项，将一些不重要的自变量系数调整为0，从而达到剔除变量的目的
+## 1. 原理
 
-#### 假设函数
+### 1.1 简介
 
-$h_\theta(x)=\theta_0 + \theta_1x$
+对于给定的实例数据和实例数据对应所属类别，当要对新的实例进行分类时，根据这个实例最近的 k 个实例所属的类别来决定其属于哪一类。
 
-#### 损失函数
+关键：距离度量、k值选取、归类规则
 
-普通最小二乘法
+### 1.2 算法流程
 
-$L(\theta_0,\theta_1)=\frac{1}{2m}\sum_{i=1}^m(h_\theta(x^{(i)})-y^{(i)})^2+\lambda|\theta_1|$
+1. 根据给定的距离度量，在训练集中找出与 $x$ 最近的 $k$ 个点
+2. 在这些点中，根据分类决策规则（如多数表决）决定 $x$ 的类别 $y$
 
-### 2. skleran-API
+### 1.3 三要素
 
-#### 参数说明
+#### 距离度量
 
-```
-class sklearn.linear_model.Lasso(alpha=1.0, *, fit_intercept=True, normalize='deprecated', precompute=False, copy_X=True, max_iter=1000, tol=0.0001, warm_start=False, positive=False, random_state=None, selection='cyclic')
-```
+- 闵可夫斯基距离（Minkowski Distance）
 
-| 参数          | 说明                                                         |
-| ------------- | ------------------------------------------------------------ |
-| fit_intercept | bool型，选择是否需要计算截距，中心化的数据可以选择false      |
-| normalize     | bool型，选择是否需要标准化，减去均值再除以L2范式（将被删除） |
-| copy_X        | bool型，选择是否复制原数据，如果为false则原数据会因标准化而被覆盖 |
-| positive      | bool型，是否强制系数为正值                                   |
-| alpha         | float型，正则化系数，数值越大，则对复杂模型的惩罚力度越大    |
-| precompute    | 是否提前计算Gram矩阵来加速计算                               |
-| selection     | str型，指定每次迭代时，选择权重向量的哪个分量进行更新<br />"random"：随机选择<br />"cyclic"：循环选择 |
+$x_i,x_j$ 之间的 $L_p$ 距离为
+$$
+L_p(x_i,x_j)=(\sum_{l=1}^n|x_i^{(l)}-x_j^{(l)}|^p)^{\frac{1}{p}} \ \ \ p\geqslant1
+$$
+$p=1$ 时，即为曼哈顿距离（Manhattan distance）
 
-#### 属性
+$p=2$ 时，即为欧式距离（Euckidean distance）
 
-| 属性             | 说明                                         |
-| ---------------- | -------------------------------------------- |
-| coef_            | array，系数                                  |
-| intercept_       | float（0.0）或array，偏置                    |
-| n_features_in_   | int，输入特征数                              |
-| feature_names_in | array，输入特征名称                          |
-| n_iter_          | int或list，迭代次数                          |
-| dual_gap_        | float或ndarray，优化结束后的对偶间隙（没懂） |
-| sparse_coef_     | array，系数矩阵的稀疏表示                    |
-
-#### 方法
-
-| 方法                                          | 说明                             |
-| --------------------------------------------- | -------------------------------- |
-| fit(X, y[, sample_weight])                    | 拟合模型                         |
-| get_params([deep])                            | 获取estimator的参数              |
-| predict(X)                                    | 预测                             |
-| score(X, y[, sample_weight])                  | 返回相关系数                     |
-| set_params(**params)                          | 设置estimator的参数              |
-| path(X, y, *[, l1_ratio, eps, n_alphas, ...]) | 使用坐标下降计算elastic net path |
-
-#### 实例
+- Python实现
 
 ```python
-# 导入线性模型模块
-from sklearn import linear_model
-# 创建lasso模型实例
-sk_lasso = linear_model.Lasso(alpha=0.1)
-# 对训练集进行拟合
-sk_lasso.fit(X_train, y_train)
-# 打印模型相关系数
-print("sklearn Lasso intercept :", sk_lasso.intercept_)
-print("\nsklearn Lasso coefficients :\n", sk_lasso.coef_)
-print("\nsklearn Lasso number of iterations :", sk_lasso.n_iter_)
+def MinkowskiDistance(x, y, p):
+    import math
+    import numpy as np
+    zipped_coordinate = zip(x, y)
+    return math.pow(np.sum([math.pow(np.abs(i[0]-i[1]), p) for i in zipped_coordinate]), 1/p)
+```
+
+#### k值选择
+
+- k值的影响
+
+较小的k值会降低近似误差，但会增加估计误差，使得预测结果对近邻点较敏感，易发生过拟合
+
+较大的k值会减小估计误差，但会增加近似误差，较远的实例也会对预测起作用
+
+- 通常采用交叉验证来选取最优k值
+
+#### 分类决策规则
+
+- 多数表决
+
+
+
+## 2. sklearn-API
+
+
+
+
+
+### 示例
+
+```python
+from sklearn.neighbors import KNeighborsClassifier
+
+neigh = KNeighborsClassifier(n_neighbors=10)
+neigh.fit(X_train, y_train)
+y_pred = neigh.predict(X_test)
+y_pred = y_pred.reshape((-1, 1))
+# 计算准确率
+num_correct = np.sum(y_pred == y_test)
+accuracy = float(num_correct) / X_test.shape[0]
+print('Got %d / %d correct => accuracy: %f' % (num_correct, X_test.shape[0], accuracy))
 ```
 
 
 
-
-
-### 4. Numpy算法
+## Numpy实现
 
 ```python
 import numpy as np
-import pandas as pd
-
-data = np.genfromtxt('example.dat', delimiter = ',')
-
-# 选择特征与标签
-x = data[:,0:100] 
-y = data[:,100].reshape(-1,1)
-# 加一列
-X = np.column_stack((np.ones((x.shape[0],1)),x)) # 为什么要加一列
-
-# 划分训练集与测试集
-X_train, y_train = X[:70], y[:70]
-X_test, y_test = X[70:], y[70:]
-
-# 定义参数初始化函数
-def initialize(dims):
-    w = np.zeros((dims, 1))
-    b = 0
-    return w, b
-
-# 定义符号函数
-def sign(x):
-    if x > 0:
-        return 1
-    elif x < 0:
-        return -1
-    else:
-        return 0
-
-# 利用numpy对符号函数进行向量化
-vec_sign = np.vectorize(sign)
-
-# 定义lasso损失函数
-def l1_loss(X, y, w, b, alpha):
-    num_train = X.shape[0]
-    num_feature = X.shape[1]
-    y_hat = np.dot(X, w) + b
-    loss = np.sum((y_hat-y)**2)/num_train + np.sum(alpha*abs(w))
-    dw = np.dot(X.T, (y_hat-y)) /num_train + alpha * vec_sign(w)
-    db = np.sum((y_hat-y)) /num_train
-    return y_hat, loss, dw, db
-
-# 定义训练过程
-def lasso_train(X, y, learning_rate=0.01, epochs=300):
-    loss_list = []
-    w, b = initialize(X.shape[1])
-    for i in range(1, epochs):
-        y_hat, loss, dw, db = l1_loss(X, y, w, b, 0.1)
-        w += -learning_rate * dw
-        b += -learning_rate * db
-        loss_list.append(loss)
-        
-        if i % 300 == 0:
-            print('epoch %d loss %f' % (i, loss))
-        params = {'w': w, 'b': b}
-        grads = {'dw': dw, 'db': db}
-    return loss, loss_list, params, grads
-
-# 执行训练示例
-loss, loss_list, params, grads = lasso_train(X_train, y_train, 0.01, 3000)
-
-# 定义预测函数
-def predict(X, params):
-    w = params['w']
-    b = params['b']
-    
-    y_pred = np.dot(X, w) + b
-    return y_pred
-
-y_pred = predict(X_test, params)
-
-from sklearn.metrics import r2_score
-r2_score(y_pred, y_test)
-```
-
-
-
-
-
-
-
-# 无监督算法篇
-
-## K-means算法
-
-### 1. 原理
-
-#### 算法原理
-
-1. 随机选择k个中心
-2. 遍历所有样本，把样本划分到距离最近的一个中心
-3. 划分之后就有K个簇，计算每个簇的平均值作为新的质心
-4. 重复步骤2，直到达到停止条件
-5. 停止：聚类中心不再发生变化；所有的距离最小；迭代次数达到设定值
-
-#### 算法复杂度
-
-k-means运用了 Lioyd’s 算法,平均计算复杂度是 O(k*n*T)，其中n是样本量，T是迭代次数。
-
-计算复杂读在最坏的情况下为 O(n^(k+2/p))，其中n是样本量，p是特征个数。
-
-### 2. sklearn API
-
-#### 参数说明
-
-```
-KMeans(n_clusters=8, init='k-means++', n_init=10, max_iter=300, tol=0.0001, precompute_distances='auto', verbose=0, random_state=None, copy_x=True, n_jobs=None, algorithm='auto')
-```
-
-| 参数                | 含义                                                         |
-| ------------------- | ------------------------------------------------------------ |
-| n-cluster           | int，分类簇的数量                                            |
-| max_iter            | int，执行一次k-means算法所进行的最大迭代数                   |
-| n_init              | 用不同的质心初始化值运行算法的次数，最终解是在inertia意义下选出的最优结果 |
-| init                | string或数组，初始化策略<br />'kmeans++'表示初始均值向量之间距离比较远，效果较好<br />random表示从数据中随机选择K个样本作为初始均值向量<br />（n_cluster,n_features）数组作为初始均值向量 |
-| precompute_distance | Bool或者'auto'，预计算距离，计算速度快但占用内存<br />'auto'表示如果n_samples*k>12 million，则不提前计算（在版本0.22中已弃用） |
-| tol                 | float，算法收敛的阈值，与inertia结合来确定收敛条件           |
-| n_jobs              | int，计算所用的进程数，内部原理是同时进行n_init指定次数的计算<br />-1表示用所有的CPU进行运算 <br />1表示不进行并行运算<br />值小于-1表示用到的CPU数为(n_cpus + 1 + n_jobs) |
-| random_state        | int或numpy.RandomState类型，可选用于初始化质心的随机数生成器 |
-| verbose             | int，日志模式<br />0表示不输出日志信息<br />1表示每隔一段时间打印一次日志信息<br />如果大于1，打印次数频繁 |
-| copy_x              | bool，当我们precomputing distances时，将数据中心化会得到更准确的结果<br />True则原始数据不会被改变<br />False则会直接在原始数据上做修改并在函数返回值时将其还原 |
-| algorithm           | float，算法类型<br />"full"：经典的EM风格算法<br /> "elkan"：使用三角形不等式算法，对于定义良好的聚类的数据更有效，但是分配了额外的形状数组（n_samples，n_clusters），因此需要更多的内存。 <br />"auto"（保持向后兼容性）选择"elkan" |
-
-#### 属性
-
-| 属性             | 含义                                            |
-| ---------------- | ----------------------------------------------- |
-| cluster_centers_ | 向量，[n_clusters, n_features] (聚类中心的坐标) |
-| Labels_          | 每个点的分类                                    |
-| inertia_         | float，每个点到其簇的质心的距离之和             |
-
-#### 方法
-
-- fit(X[,y]): 计算k-means聚类。
-- fit_predict(X[,y]): 计算簇质心并给每个样本预测类别。
-- fit_transform(X[,y])：计算簇并 transform X to cluster-distance space。
-- get_params([deep])：取得估计器的参数。
-- predict(X): 给每个样本估计最接近的簇。
-- score(X[,y]): 计算聚类误差
-- set_params(**params): 为这个估计器手动设定参数。
-- transform(X[,y]): 将X转换为群集距离空间。 　
-  在新空间中，每个维度都是到集群中心的距离。请注意，即使X是稀疏的，转换返回的数组通常也是密集的。
-
-#### 实例
-
-```python
-from sklearn.datasets import load_iris
-import xlwt
-import pandas as pd
-from sklearn.cluster import KMeans
-from sklearn.preprocessing import MinMaxScaler
-
-# 加载鸢尾花数据
-iris = load_iris()
-iris_data = iris['data']
-iris_target = iris['target']
-iris_names = iris['feature_names']
-
-# 标准化
-data_zs = (iris_data - iris_data.mean()) / iris_data.std()
-# minmax标准化
-scale = MinMaxScaler().fit(iris_data)
-iris_datascale = scale.transform(iris_data)
-
-# 聚类
-kmeans = KMeans(n_clusters=3, random_state=123).fit(iris_datascale)
-
-# 预测，预测的数据需要使用和训练数据同样的标准化才行。
-result = kmeans.predict([[5.6,2.8,4.9,2.0]])
-```
-
-### 3. 评估指标
-
-#### 评估体系
-
-| 方法              | 真实值 | 最佳值     | sklearn接口                |
-| ----------------- | ------ | ---------- | -------------------------- |
-| ARI(兰德系数)     | 需要   | 1.0        | adjusted_rand_score        |
-| AMI(互信息)       | 需要   | 1.0        | adjusted_mutual_info_score |
-| V-measure         | 需要   | 1.0        | completeness_score         |
-| FMI               | 需要   | 1.0        | fowlkes_mallows_score      |
-| 轮廓系数          | 不需要 | 畸变程度大 | silhouette_score           |
-| Calinski_ Harabaz | 不需要 | 最大值     | calinski_harabaz_score     |
-
-#### FMI评价法
-
-```python
-from sklearn.metrics import fowlkes_mallows_score
-for i in range(2, 7):
-    kmeans = KMeans(n_clusters=i, random_state=123).fit(iris_data)
-    score = fowlkes_mallows_score(iris_target, kmeans.labels_)
-    print("聚类%d簇的FMI分数为：%f" % (i, score))
-```
-
-#### 轮廓系数
-
-```python
-from sklearn.metrics import silhouette_score
+from collections import Counter
+import random
 import matplotlib.pyplot as plt
-silhouettescore=[]
-for i in range(2, 15):
-    kmeans = KMeans(n_clusters=i, random_state=123).fit(iris_data)
-    score = silhouette_score(iris_data, kmeans.labels_)
-    silhouettescore.append(score)
-plt.figure(figsize=(10, 6))
-plt.plot(range(2, 15), silhouettescore, linewidth=1.5, linestyle='-')
-plt.show()
+from sklearn import datasets
+from sklearn.utils import shuffle
+
+class KNearestNeighbor(object):
+    def __init__(self):
+        pass
+
+    def train(self, X, y):
+        self.X_train = X
+        self.y_train = y    
+    
+    def compute_distances(self, X):
+        ### 定义欧氏距离
+        num_test = X.shape[0]
+        num_train = self.X_train.shape[0]
+        dists = np.zeros((num_test, num_train)) 
+
+        M = np.dot(X, self.X_train.T)
+        te = np.square(X).sum(axis=1)
+        tr = np.square(self.X_train).sum(axis=1)
+        dists = np.sqrt(-2 * M + tr + np.matrix(te).T)        
+        return dists    
+        
+    def predict_labels(self, dists, k=1):
+        ### 定义预测函数
+        num_test = dists.shape[0]
+        y_pred = np.zeros(num_test)         
+        for i in range(num_test):
+            closest_y = []
+            labels = self.y_train[np.argsort(dists[i, :])].flatten()
+            closest_y = labels[0:k]
+
+            c = Counter(closest_y)
+            y_pred[i] = c.most_common(1)[0][0]        
+        return y_pred    
+        
+    def cross_validation(self, X_train, y_train):
+        ### 5折交叉验证
+        num_folds = 5
+        k_choices = [1, 3, 5, 8, 10, 12, 15, 20, 50, 100]
+
+        X_train_folds = []
+        y_train_folds = []
+
+        X_train_folds = np.array_split(X_train, num_folds)
+        y_train_folds = np.array_split(y_train, num_folds)
+
+        k_to_accuracies = {}        
+        for k in k_choices:            
+            for fold in range(num_folds): 
+                validation_X_test = X_train_folds[fold]
+                validation_y_test = y_train_folds[fold]
+                temp_X_train = np.concatenate(X_train_folds[:fold] + X_train_folds[fold + 1:])
+                temp_y_train = np.concatenate(y_train_folds[:fold] + y_train_folds[fold + 1:])
+
+
+                self.train(temp_X_train, temp_y_train )
+
+                temp_dists = self.compute_distances(validation_X_test)
+                temp_y_test_pred = self.predict_labels(temp_dists, k=k)
+                temp_y_test_pred = temp_y_test_pred.reshape((-1, 1))                #Checking accuracies
+                num_correct = np.sum(temp_y_test_pred == validation_y_test)
+                num_test = validation_X_test.shape[0]
+                accuracy = float(num_correct) / num_test
+                k_to_accuracies[k] = k_to_accuracies.get(k,[]) + [accuracy]        # Print out the computed accuracies
+        
+        for k in sorted(k_to_accuracies):            
+            for accuracy in k_to_accuracies[k]:
+                print('k = %d, accuracy = %f' % (k, accuracy))
+
+        accuracies_mean = np.array([np.mean(v) for k,v in sorted(k_to_accuracies.items())])
+        best_k = k_choices[np.argmax(accuracies_mean)]
+        print('最佳k值为{}'.format(best_k))        
+        
+        return best_k    
+        
+    def create_train_test(self):
+        X, y = shuffle(iris.data, iris.target, random_state=13)
+        X = X.astype(np.float32)
+        y = y.reshape((-1,1))
+        offset = int(X.shape[0] * 0.7)
+        X_train, y_train = X[:offset], y[:offset]
+        X_test, y_test = X[offset:], y[offset:]
+        y_train = y_train.reshape((-1,1))
+        y_test = y_test.reshape((-1,1))        
+        return X_train, y_train, X_test, y_test
+
+if __name__ == '__main__':
+    knn_classifier = KNearestNeighbor()
+    X_train, y_train, X_test, y_test = knn_classifier.create_train_test()
+    best_k = knn_classifier.cross_validation(X_train, y_train)
+    dists = knn_classifier.compute_distances(X_test)
+    y_test_pred = knn_classifier.predict_labels(dists, k=best_k)
+    y_test_pred = y_test_pred.reshape((-1, 1))
+    num_correct = np.sum(y_test_pred == y_test)
+    accuracy = float(num_correct) / X_test.shape[0]
+    print('Got %d / %d correct => accuracy: %f' % (num_correct, X_test.shape[0], accuracy))
 ```
 
-变化快的部分（斜率大）就是分类的最佳选择
 
-#### Calinski-Harabasz指数评价
+
+
+
+
+
+# 线性判别分析
+
+Linear Discriminant Analysis，LDA
+
+## 1. 原理
+
+### 1.1 简介
+
+一种监督学习的降维技术，将数据在低维度上进行投影，使得同一类数据尽可能接近，不同类数据尽可能疏远
+
+<img src="C:\Users\27110\AppData\Roaming\Typora\typora-user-images\image-20220603190053359.png" alt="image-20220603190053359" style="zoom:50%;" />
+
+### 1.2 公式推导
+
+#### 目标函数
+
+以二分类为例：
+
+给定数据集 $D={(X_I,Y_I)}_{i=1}^m, y_i\in\{0, 1\}$
+
+定义 $X_i、\mu_i、\Sigma_i$ 分别表示第 $i\in\{0, 1\}$ 类数据的集合、均值向量、协方差矩阵，$w^T$表示投影矩阵
+
+保证同类样本在投影后协方差尽可能小，类中心距离尽可能大
+
+故最大化目标函数：
+$$
+J=\frac{||w^T\mu_0-w^T\mu_1||_2^2}{w^T\Sigma_0w+w^T\Sigma_1w}=\frac{w^T(\mu_0-\mu_1)(\mu_0-\mu_1)^Tw}{w^T(\Sigma_0+\Sigma_1)w}=\frac{w^TS_bw}{w^TS_ww}
+$$
+类内散度矩阵$S_w$，类间散度矩阵$S_b$
+
+根据条件约束优化求解的拉格朗日乘子法可以得到
+$$
+w=S_w^{-1}(\mu_0-\mu_1)
+$$
+其中$S_w^{-1}$可由SVD求解
+
+#### 算法流程
+
+1. 对数据按类别分组，分别计算每组样本的均值和协方差
+2. 计算类内散度矩阵 $S_w$
+3. 计算均值差 $\mu_0-\mu_1$
+4. SVD方法计算类内散度矩阵的逆 $S_w^{-1}$
+5. 计算投影矩阵 $w$。
+6. 计算投影后的数据点 $Y = S_w^TX$
+
+
+
+## 2. sklearn-API
 
 ```python
-from sklearn.metrics import calinski_harabaz_score
-for i in range(2, 7):
-    kmeans = KMeans(n_clusters=i, random_state=123).fit(iris_data)
-    score = calinski_harabaz_score(iris_data, kmeans.labels_)
-    print("聚类%d簇的calinski_harabaz分数为：%f" % (i, score))
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+clf = LinearDiscriminantAnalysis()
+clf.fit(X_train, y_train)
+y_pred = clf.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
 ```
 
-### 4. Numpy算法
+
+
+## 4. Numpy实现
+
+### LDA模型
 
 ```python
 import numpy as np
-# 定义欧式距离
-def euclidean_distance(x1, x2):
-    distance = 0
-    for i in range(len(x1)):
-        distance += pow((x1[i] - x2[i]), 2)
-    return np.sqrt(distance)
 
-# 定义中心初始化函数
-def centroids_init(k, X):
-    m, n = X.shape
-    centroids = np.zeros((k, n))
-    for i in range(k):
-        # 每一次循环随机选择一个类别中心
-        centroid = X[np.random.choice(range(m))]
-        centroids[i] = centroid
-    return centroids
+class LDA():
+    def __init__(self):
+        # 初始化权重矩阵
+        self.w = None
+        
+    # 计算协方差矩阵
+    def calc_cov(self, X, Y=None):
+        m = X.shape[0]
+        # 数据标准化
+        X = (X - np.mean(X, axis=0))/np.std(X, axis=0)
+        Y = X if Y == None else (Y - np.mean(Y, axis=0))/np.std(Y, axis=0)
+        return 1 / m * np.matmul(X.T, Y)
+    
+    # 对数据进行投影
+    def project(self, X, y):
+        self.fit(X, y)
+        X_projection = X.dot(self.w)
+        return X_projection
+    
+    # LDA拟合过程
+    def fit(self, X, y):
+        # 按类分组
+        X0 = X[y == 0]
+        X1 = X[y == 1]
 
-# 定义样本的最近质心点所属的类别索引
-def closest_centroid(sample, centroids):
-    closest_i = 0
-    closest_dist = float('inf')
-    for i, centroid in enumerate(centroids):
-        # 根据欧式距离判断，选择最小距离的中心点所属类别
-        distance = euclidean_distance(sample, centroid)
-        if distance < closest_dist:
-            closest_i = i
-            closest_dist = distance
-    return closest_i
+        # 分别计算两类数据自变量的协方差矩阵
+        sigma0 = self.calc_cov(X0)
+        sigma1 = self.calc_cov(X1)
+        # 计算类内散度矩阵
+        Sw = sigma0 + sigma1
 
-# 定义构建类别过程
-def build_clusters(centroids, k, X):
-    clusters = [[] for _ in range(k)]
-    for x_i, x in enumerate(X):
-        # 将样本划分到最近的类别区域
-        centroid_i = closest_centroid(x, centroids)
-        clusters[centroid_i].append(x_i)
-    return clusters
+        # 分别计算两类数据自变量的均值和差
+        u0, u1 = np.mean(X0, axis=0), np.mean(X1, axis=0)
+        mean_diff = np.atleast_1d(u0 - u1)
 
-# 根据上一步聚类结果计算新的中心点
-def calculate_centroids(clusters, k, X):
-    n = X.shape[1]
-    centroids = np.zeros((k, n))
-    # 以当前每个类样本的均值为新的中心点
-    for i, cluster in enumerate(clusters):
-        centroid = np.mean(X[cluster], axis=0)
-        centroids[i] = centroid
-    return centroids
-
-# 获取每个样本所属的聚类类别
-def get_cluster_labels(clusters, X):
-    y_pred = np.zeros(X.shape[0])
-    for cluster_i, cluster in enumerate(clusters):
-        for X_i in cluster:
-            y_pred[X_i] = cluster_i
-    return y_pred
-
-# 根据上述各流程定义kmeans算法流程
-def kmeans(X, k, max_iterations):
-    # 1.初始化中心点
-    centroids = centroids_init(k, X)
-    # 遍历迭代求解
-    for _ in range(max_iterations):
-        # 2.根据当前中心点进行聚类
-        clusters = build_clusters(centroids, k, X)
-        # 保存当前中心点
-        prev_centroids = centroids
-        # 3.根据聚类结果计算新的中心点
-        centroids = calculate_centroids(clusters, k, X)
-        # 4.设定收敛条件为中心点是否发生变化
-        diff = centroids - prev_centroids
-        if not diff.any():
-            break
-    # 返回最终的聚类标签
-    return get_cluster_labels(clusters, X)
+        # 对类内散度矩阵进行奇异值分解
+        U, S, V = np.linalg.svd(Sw)
+        # 计算类内散度矩阵的逆
+        Sw_ = np.dot(np.dot(V.T, np.linalg.pinv(np.diag(S))), U.T)
+        # 计算w
+        self.w = Sw_.dot(mean_diff)
+    
+    # LDA分类预测
+    def predict(self, X):
+        y_pred = []
+        for sample in X:
+            h = sample.dot(self.w)
+            y = 1 * (h < 0)
+            y_pred.append(y)
+        return y_pred
 ```
 
+### 示例
+
+```python
+from sklearn import datasets
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+data = datasets.load_iris()
+X = data.data
+y = data.target
+X = X[y != 2]
+y = y[y != 2]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=41)
+
+lda = LDA()
+lda.fit(X_train, y_train)
+y_pred = lda.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+```
+
+
+
+## 5. 与PCA之间的异同点
+
+### 相同点
+
+- 两者均可以对数据进行降维
+
+- 两者在降维时均使用了矩阵特征分解的思想。
+
+- 两者都假设数据符合高斯分布。
+
+### 不同点
+
+- LDA是有监督的降维方法，而PCA是无监督的降维方法
+
+- LDA降维最多降到类别数k-1的维数，而PCA没有这个限制。
+
+- LDA除了可以用于降维，还可以用于分类。
+
+- LDA选择分类性能最好的投影方向，而PCA选择样本点投影具有最大方差的方向。
+
+
+
+## 6. 优缺点
+
+### 优点
+
+- 在降维过程中可以使用类别的先验知识经验
+
+- LDA在样本分类信息依赖均值而不是方差的时候，比PCA之类的算法较优。
+
+ ### 缺点
+
+- LDA不适合对非高斯分布样本进行降维，PCA也有这个问题。
+
+- LDA降维最多降到类别数k-1的维数，如果我们降维的维度大于k-1，则不能使用LDA。当然目前有一些LDA的进化版算法可以绕过这个问题。
+
+- LDA在样本分类信息依赖方差而不是均值的时候，降维效果不好。
+
+- LDA可能过度拟合数据
