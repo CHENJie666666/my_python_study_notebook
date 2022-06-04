@@ -1,5 +1,31 @@
 # 有监督算法篇
 
+
+
+# 感知机
+
+perception
+
+## 1. 原理
+
+### 简介
+
+- 二分类线性分类模型
+
+- 神经网络和支持向量机的基础
+
+### 模型
+
+- 将输入转化为二分类输出
+
+$$
+f(x)=sign(wx+b)
+$$
+
+
+
+
+
 # 线性回归
 
 ## 多元线性回归模型
@@ -1110,11 +1136,21 @@ def MinkowskiDistance(x, y, p):
 
 较大的k值会减小估计误差，但会增加近似误差，较远的实例也会对预测起作用
 
+k值过小，易受到异常值影响；k值过大，易受到样本不均衡影响
+
 - 通常采用交叉验证来选取最优k值
 
 #### 分类决策规则
 
 - 多数表决
+
+### 1.4 优化策略
+
+线性扫描方法需要遍历所有数据，当数据集较大时非常耗时
+
+构造kd树：不断用垂直于坐标轴的超平面将k维空间切分，构成一系列的k维超矩形区域
+
+通常选择训练实例点在选定坐标轴上的中位数为切分点，得到平衡kd树
 
 
 
@@ -1246,6 +1282,622 @@ if __name__ == '__main__':
     accuracy = float(num_correct) / X_test.shape[0]
     print('Got %d / %d correct => accuracy: %f' % (num_correct, X_test.shape[0], accuracy))
 ```
+
+
+
+## 优缺点
+
+### 优点
+
+简单，无需训练，易于实现 
+
+### 缺点
+
+计算量大；k值不当则分类精度无法保证
+
+
+
+
+
+# 决策树
+
+decision tree, DT
+
+## 1. 原理
+
+### 简介
+
+- 一种分类的树形结构（也可以用作回归），在分类中，基于特征对实例进行分类，可以看做是if-then规则的集合，也可以认为是定义在特征空间与类空间上的条件概率分布
+- 决策树由结点和有向边组成。结点又分为内部结点（表示特征或属性）和叶结点（表示一个类）。决策树从根结点开始对实例某一特征进行分类，并将实例分配到其子结点上，不断递归直至到达子结点。
+- 主要包括三个步骤：特征选择、决策树生成、决策树修剪
+- 决策树学习的思想：ID3算法、C4.5算法、CART算法
+
+- 决策树学习主要流程
+
+开始，构建根节点，将所有训练数据放在根节点，选择一个最优特征，按照这一特征将训练集分割为子集，使得各个子集有一个在当前条件下最好的分类。如果这些子集已经能够被基本正确分类，那么构建叶结点，并将这些子集分到所对应的叶结点中，若不能正确分类，则重新选择分类特征。如此递归执行，直至训练集子集被基本正确分类，或者没有合适的特征为止。
+
+### ID3算法
+
+利用信息增益来学习决策树
+
+#### 信息熵 information entropy
+
+设$X$是一个离散随机变量，其概率分布为
+$$
+P(X=x_i)=p_i, \ \ i=1,2,...,n
+$$
+则其熵表示为
+$$
+H(p)=-\sum_{i=1}^np_ilog_2p_i
+$$
+熵的单位是比特（以2为底）或纳特（以e为底），熵越大，随机变量的不确定性就越大
+
+#### 信息增益 information gain
+
+表示得知特征X的信息而使得类Y的信息的不确定性减少的程度，也叫互信息
+$$
+g(Y, X)=H(Y)-H(Y|X)=H(Y)-\sum_{i=1}^np_iH(Y|X=x_i)
+$$
+信息增益越大，则该特征对数据集确定性贡献越大，表示该特征对数据有较强的分类能力。
+
+#### 学习过程
+
+从根结点开始，对结点计算所有可能的特征的信息增益，选择信息增益最大的特征作为结点的特征，由该特征的不同取值建立子结点；在递归调用以上方法；直到所有特征的信息增益均很小或没有特征可以选择为止
+
+#### numpy实现
+
+```python
+def entropy(ele):    
+    '''
+    计算信息熵
+    input: A list contain categorical value.
+    output: Entropy value.
+    '''
+    # Calculating the probability distribution of list value
+    probs = [ele.count(i)/len(ele) for i in set(ele)]    
+    # Calculating entropy value
+    entropy = -sum([prob*log(prob, 2) for prob in probs])    
+    return entropy
+
+def split_dataframe(data, col):    
+    '''
+    根据特征和特征值进行数据划分
+    input: dataframe, column name.
+    output: a dict of splited dataframe.
+    '''
+    # unique value of column
+    unique_values = data[col].unique()    
+    # empty dict of dataframe
+    result_dict = {elem : pd.DataFrame for elem in unique_values}    
+    # split dataframe based on column value
+    for key in result_dict.keys():
+        result_dict[key] = data[:][data[col] == key]    
+    return result_dict
+
+def choose_best_col(df, label):    
+    '''
+    根据信息增益确定最优特征
+    input: datafram, label
+    output: max infomation gain, best column, 
+            splited dataframe dict based on best column.
+    '''
+    # Calculating label's entropy
+    entropy_D = entropy(df[label].tolist())    
+    # columns list except label
+    cols = [col for col in df.columns if col not in [label]]    
+    # initialize the max infomation gain, best column and best splited dict
+    max_value, best_col = -999, None
+    max_splited = None
+    # split data based on different column
+    for col in cols:
+        splited_set = split_dataframe(df, col)
+        entropy_DA = 0
+        for subset_col, subset in splited_set.items():            
+            # calculating splited dataframe label's entropy
+            entropy_Di = entropy(subset[label].tolist())            
+            # calculating entropy of current feature
+            entropy_DA += len(subset)/len(df) * entropy_Di        
+        # calculating infomation gain of current feature
+        info_gain = entropy_D - entropy_DA        
+        if info_gain > max_value:
+            max_value, best_col = info_gain, col
+            max_splited = splited_set    
+        return max_value, best_col, max_splited
+    
+class ID3Tree:    
+    # define a Node class
+    class Node:        
+        def __init__(self, name):
+            self.name = name
+            self.connections = {}    
+            
+        def connect(self, label, node):
+            self.connections[label] = node    
+        
+    def __init__(self, data, label):
+        self.columns = data.columns
+        self.data = data
+        self.label = label
+        self.root = self.Node("Root")    
+    
+    # print tree method
+    def print_tree(self, node, tabs):
+        print(tabs + node.name)        
+        for connection, child_node in node.connections.items():
+            print(tabs + "\t" + "(" + connection + ")")
+            self.print_tree(child_node, tabs + "\t\t")    
+    
+    def construct_tree(self):
+        self.construct(self.root, "", self.data, self.columns)    
+    
+    # construct tree
+    def construct(self, parent_node, parent_connection_label, input_data, columns):
+        max_value, best_col, max_splited = choose_best_col(input_data[columns], self.label)        
+        if not best_col:
+            node = self.Node(input_data[self.label].iloc[0])
+            parent_node.connect(parent_connection_label, node)            
+        return
+
+        node = self.Node(best_col)
+        parent_node.connect(parent_connection_label, node)
+
+        new_columns = [col for col in columns if col != best_col]        
+        # Recursively constructing decision trees
+        for splited_value, splited_data in max_splited.items():
+            self.construct(node, splited_value, splited_data, new_columns)
+```
+
+
+
+### C4.5算法
+
+#### 信息增益比
+
+$$
+g_R(Y,X)=\frac{g(Y,X)}{H_X(Y)}, H_X(Y)=-\sum_{i=1}^n\frac{|Y_i|}{|Y|}log_2\frac{|Y_i|}{Y}
+$$
+
+#### 学习过程
+
+- 与ID3法类似，不同的是采用信息增益比替代信息增益选择特征
+
+#### 剪枝
+
+- 生成的决策树对训练数据拟合效果好，但容易过拟合，需要剪枝（从已生成的树上裁减一些叶结点）
+
+- 剪枝算法之一 —— 极小化决策树损失函数（类似正则化）
+
+树 $T$ 的叶结点个数为 $|T|$，在叶结点 $t$ 处有 $N_t$ 个样本，其中 $k$ 类样本数有 $N_{tk}$ 个
+
+决策树的损失函数可以定义为：
+$$
+C_\alpha(T)=\sum_{i=1}^{|T|}N_tH_t(T) + \alpha|T|,其中经验熵H_t(T)=-\sum_k\frac{N_tk}{N_t}log\frac{N_{tk}}{N_k}
+$$
+剪枝算法：计算每个叶结点回缩至父结点前后的损失，若剪枝后损失未减小则不剪枝，不断循环至不能再剪枝为止
+
+### CART算法
+
+classification and regression tree, CART
+
+#### 简介
+
+- CART是在给定输入随机变量X条件下输出随机变量Y的条件概率分布的学习方法
+
+- 假设决策树是二叉树
+- 算法流程：基于训练集生成决策树，用验证集剪枝（以损失函数最小为剪枝原则）
+
+#### 回归树
+
+- 回归树模型
+
+将输入空间划分为 $M$ 个单元 ，且每个单元 $R_m$ 上有固定输出值 $c_m$
+$$
+f(x)=\sum_{m=1}^Mc_mI(x\in R_m)
+$$
+
+- 损失：空间划分的误差采用平方误差来衡量（最小二乘回归树）
+
+$$
+\sum_{x_i\in R_m}(y_i-f(x_i))^2
+$$
+
+#### 分类树
+
+- 基尼系数
+
+假设有 $K$ 类，样本属于第 $k$ 类的概率为 $p_k$，则概率分布的基尼系数定义为
+$$
+Gini(p)=\sum_{k=1}^Kp_k(1-p_k)=1-\sum_{k=1}^Kp_k^2
+$$
+基尼系数表示集合的不确定度，其值越大，则不确定度越大
+
+- 分类树采用基尼系数选择特征，选择基尼系数最小的特征作为切分点
+
+#### 剪枝
+
+与ID3和C4.5的剪枝算法类似，不同的是损失采用最小二乘或基尼系数进行衡量
+
+#### numpy实现
+
+```python
+def gini(nums):
+    """计算基尼系数"""
+    probs = [nums.count(i)/len(nums) for i in set(nums)]
+    gini = sum([p*(1-p) for p in probs]) 
+    return gini
+
+### 定义二叉特征分裂函数
+def feature_split(X, feature_i, threshold):
+    split_func = None
+    if isinstance(threshold, int) or isinstance(threshold, float):
+        split_func = lambda sample: sample[feature_i] >= threshold
+    else:
+        split_func = lambda sample: sample[feature_i] == threshold
+
+    X_left = np.array([sample for sample in X if split_func(sample)])
+    X_right = np.array([sample for sample in X if not split_func(sample)])
+    return np.array([X_left, X_right])
+
+### 定义树结点
+class TreeNode():
+    def __init__(self, feature_i=None, threshold=None,
+                 leaf_value=None, left_branch=None, right_branch=None):
+        # 特征索引
+        self.feature_i = feature_i          
+        # 特征划分阈值
+        self.threshold = threshold 
+        # 叶子节点取值
+        self.leaf_value = leaf_value   
+        # 左子树
+        self.left_branch = left_branch     
+        # 右子树
+        self.right_branch = right_branch 
+
+### 定义二叉决策树
+class BinaryDecisionTree(object):
+    ### 决策树初始参数
+    def __init__(self, min_samples_split=2, min_gini_impurity=999,
+                 max_depth=float("inf"), loss=None):
+        # 根结点
+        self.root = None  
+        # 节点最小分裂样本数
+        self.min_samples_split = min_samples_split
+        # 节点初始化基尼不纯度
+        self.mini_gini_impurity = min_gini_impurity
+        # 树最大深度
+        self.max_depth = max_depth
+        # 基尼不纯度计算函数
+        self.gini_impurity_calculation = None
+        # 叶子节点值预测函数
+        self._leaf_value_calculation = None
+        # 损失函数
+        self.loss = loss
+
+    ### 决策树拟合函数
+    def fit(self, X, y, loss=None):
+        # 递归构建决策树
+        self.root = self._build_tree(X, y)
+        self.loss=None
+
+    ### 决策树构建函数
+    def _build_tree(self, X, y, current_depth=0):
+        # 初始化最小基尼不纯度
+        init_gini_impurity = 999
+        # 初始化最佳特征索引和阈值
+        best_criteria = None    
+        # 初始化数据子集
+        best_sets = None        
+
+        # 合并输入和标签
+        Xy = np.concatenate((X, y), axis=1)
+        # 获取样本数和特征数
+        n_samples, n_features = X.shape
+        # 设定决策树构建条件
+        # 训练样本数量大于节点最小分裂样本数且当前树深度小于最大深度
+        if n_samples >= self.min_samples_split and current_depth <= self.max_depth:
+            # 遍历计算每个特征的基尼不纯度
+            for feature_i in range(n_features):
+                # 获取第i特征的所有取值
+                feature_values = np.expand_dims(X[:, feature_i], axis=1)
+                # 获取第i个特征的唯一取值
+                unique_values = np.unique(feature_values)
+
+                # 遍历取值并寻找最佳特征分裂阈值
+                for threshold in unique_values:
+                    # 特征节点二叉分裂
+                    Xy1, Xy2 = feature_split(Xy, feature_i, threshold)
+                    # 如果分裂后的子集大小都不为0
+                    if len(Xy1) > 0 and len(Xy2) > 0:
+                        # 获取两个子集的标签值
+                        y1 = Xy1[:, n_features:]
+                        y2 = Xy2[:, n_features:]
+
+                        # 计算基尼不纯度
+                        impurity = self.impurity_calculation(y, y1, y2)
+
+                        # 获取最小基尼不纯度
+                        # 最佳特征索引和分裂阈值
+                        if impurity < init_gini_impurity:
+                            init_gini_impurity = impurity
+                            best_criteria = {"feature_i": feature_i, "threshold": threshold}
+                            best_sets = {
+                                "leftX": Xy1[:, :n_features],   
+                                "lefty": Xy1[:, n_features:],   
+                                "rightX": Xy2[:, :n_features],  
+                                "righty": Xy2[:, n_features:]   
+                                }
+        
+        # 如果计算的最小不纯度小于设定的最小不纯度
+        if init_gini_impurity < self.mini_gini_impurity:
+            # 分别构建左右子树
+            left_branch = self._build_tree(best_sets["leftX"], best_sets["lefty"], current_depth + 1)
+            right_branch = self._build_tree(best_sets["rightX"], best_sets["righty"], current_depth + 1)
+            return TreeNode(feature_i=best_criteria["feature_i"], threshold=best_criteria[
+                                "threshold"], left_branch=left_branch, right_branch=right_branch)
+
+        # 计算叶子计算取值
+        leaf_value = self._leaf_value_calculation(y)
+
+        return TreeNode(leaf_value=leaf_value)
+
+    ### 定义二叉树值预测函数
+    def predict_value(self, x, tree=None):
+        if tree is None:
+            tree = self.root
+
+        # 如果叶子节点已有值，则直接返回已有值
+        if tree.leaf_value is not None:
+            return tree.leaf_value
+
+        # 选择特征并获取特征值
+        feature_value = x[tree.feature_i]
+
+        # 判断落入左子树还是右子树
+        branch = tree.right_branch
+        if isinstance(feature_value, int) or isinstance(feature_value, float):
+            if feature_value >= tree.threshold:
+                branch = tree.left_branch
+        elif feature_value == tree.threshold:
+            branch = tree.left_branch
+
+        # 测试子集
+        return self.predict_value(x, branch)
+
+    ### 数据集预测函数
+    def predict(self, X):
+        y_pred = [self.predict_value(sample) for sample in X]
+        return y_pred
+
+### CART回归树
+class RegressionTree(BinaryDecisionTree):
+    def _calculate_variance_reduction(self, y, y1, y2):
+        var_tot = np.var(y, axis=0)
+        var_y1 = np.var(y1, axis=0)
+        var_y2 = np.var(y2, axis=0)
+        frac_1 = len(y1) / len(y)
+        frac_2 = len(y2) / len(y)
+        # 计算方差减少量
+        variance_reduction = var_tot - (frac_1 * var_y1 + frac_2 * var_y2)
+        
+        return sum(variance_reduction)
+
+    # 节点值取平均
+    def _mean_of_y(self, y):
+        value = np.mean(y, axis=0)
+        return value if len(value) > 1 else value[0]
+
+    def fit(self, X, y):
+        self.impurity_calculation = self._calculate_variance_reduction
+        self._leaf_value_calculation = self._mean_of_y
+        super(RegressionTree, self).fit(X, y)    
+
+### CART决策树
+class ClassificationTree(BinaryDecisionTree):
+    ### 定义基尼不纯度计算过程
+    def _calculate_gini_impurity(self, y, y1, y2):
+        p = len(y1) / len(y)
+        gini = calculate_gini(y)
+        gini_impurity = p * calculate_gini(y1) + (1-p) * calculate_gini(y2)
+        return gini_impurity
+    
+    ### 多数投票
+    def _majority_vote(self, y):
+        most_common = None
+        max_count = 0
+        for label in np.unique(y):
+            # 统计多数
+            count = len(y[y == label])
+            if count > max_count:
+                most_common = label
+                max_count = count
+        return most_common
+    
+    # 分类树拟合
+    def fit(self, X, y):
+        self.impurity_calculation = self._calculate_gini_impurity
+        self._leaf_value_calculation = self._majority_vote
+        super(ClassificationTree, self).fit(X, y)        
+    
+from sklearn import datasets
+data = datasets.load_iris()
+X, y = data.data, data.target
+y = y.reshape(-1,1)
+X_train, X_test, y_train, y_test = train_test_split(X, y.reshape(-1,1), test_size=0.3)
+clf = ClassificationTree()
+clf.fit(X_train, y_train)
+y_pred = clf.predict(X_test)
+
+print(accuracy_score(y_test, y_pred))
+```
+
+
+
+### 示例
+
+#### ID3算法
+
+```python
+from sklearn.datasets import load_iris
+from sklearn import tree
+import graphviz
+
+iris = load_iris()
+# criterion选择entropy，这里表示选择ID3算法
+clf = tree.DecisionTreeClassifier(criterion='entropy', splitter='best')
+clf = clf.fit(iris.data, iris.target)
+# score = clf.score(X_test, y_test)  # 返回预测的准确度
+
+dot_data = tree.export_graphviz(clf, out_file=None,
+                               feature_names=iris.feature_names,
+                               class_names=iris.target_names,
+                               filled=True, 
+                               rounded=True,
+                               special_characters=True)
+graph = graphviz.Source(dot_data)
+```
+
+#### CART树
+
+```python
+from sklearn.tree import DecisionTreeClassifier
+clf = DecisionTreeClassifier()
+clf.fit(X_train, y_train)
+y_pred = clf.predict(X_test)
+print(accuracy_score(y_test, y_pred))
+
+from sklearn.tree import DecisionTreeRegressor
+reg = DecisionTreeRegressor()
+reg.fit(X_train, y_train)
+y_pred = reg.predict(X_test)
+mse = mean_squared_error(y_test, y_pred)
+print("Mean Squared Error:", mse)
+```
+
+
+
+## 分类树  DecisionTreeClassifier
+
+### 参数
+
+- criterion  计算不纯度方式
+
+1. entropy  信息熵（计算更慢一些，但对不纯度更敏感，对训练集的拟合更好，但容易过拟合）
+2. gini  基尼系数（默认选项；纬度高，噪音大时使用）
+
+- random_state  分枝中随机模式的参数，默认为None
+- splitter  控制DT中的随机选项
+
+1. best  优先选择更重要的特征进行分枝
+2. random  分枝时更加随机，防止过拟合
+
+- max_depth  限制树的最大深度（高维度低样本量时有效；可从3开始尝试）
+- min_samples_leaf   一个节点分枝后的子节点必须至少包含xxx个训练样本，这个节点才被允许分枝（可从5开始尝试；设置太小容易过拟合；也可输入浮点数表示百分比）
+- min_samples_split  一个节点必须至少包含xxx个训练样本，这个节点才被允许分枝
+- class_weight & min_weight_fraction_leaf  给样本标签一定权重（此时剪枝需要搭配min_weight_fraction_leaf使用）
+
+### 属性
+
+- classes_    输出所有标签
+- feature_importances_    特征重要性
+- max_feature_    参数max_feature的推断值
+- n_classes_    标签类别的数据
+- n_features_    训练时使用的特征个数
+- n_outputs_    训练时输出的结果个数
+- tree_    可以访问树的结构和低级属性
+
+### 接口
+
+- clf.apply(X_test)    返回测试样本所在的叶子节点的索引
+- clf.predict(X_test)    返回测试样本的分类/回归结果
+- clf.fit(x_train, y_train)
+- clf.score(X_test, y_test)
+
+不接受一维矩阵作为特征输入，必须转化为二维矩阵（reshape(-1, 1)）
+
+### 画DT树
+
+```
+from sklearn import tree
+import graphvize
+
+feature_names = []  # 定义特征名
+label_names = []  # 标签名
+dot_data = tree.export_graphviz(clf, feature_names, class_names, filled=True, rounded=True)  # 定义DT
+graph = graphvize.Source(dot_data)  # 绘图
+```
+
+filled和rounded定义了框的填充颜色和形状
+
+### 查看DT树属性
+
+```
+clf.feature_importance_
+[*zip(feature_names, clf.feature_importance_)]
+```
+
+### 其他
+
+DT对环形数据的分类效果较差
+
+## 回归树  DecisionTreeRegressor
+
+### 参数
+
+- criterion  衡量分枝质量的指标
+
+1. mse    均方误差（也是最常用的回归树回归质量的指标）
+2. fredman_mse    费尔德曼均方误差
+3. mae    绝对平均误差
+
+### 属性&接口
+
+和分类树一致
+
+### 交叉验证
+
+```
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.model_selection import cross_val_score
+regressor = DecisionTreeRegressor(random_state=0)
+cross_val_score(regressor, x_data, y_data, cv=10, scoring='neg_mean_squared_error')
+```
+
+不需要额外划分数据集和测试集
+
+### 网格搜索
+
+```
+from sklearn.model_selection import GridSearchCV
+parameters = {
+    'criterion': ('gini', 'entropy'),
+    'splitter': ('best', 'random'),
+    'max_depth': [*range(1, 10)],
+    'min_samples_leaf': [*range(1, 50, 5)],
+    'min_impurity_decrease': np.linspace(0, 0.5, 50)
+}
+GS = GridSearchCV(clf, parameters, cv=10)
+GS = GS.fit(x_train, y_train)
+```
+
+计算量大！
+
+网格参数的属性
+
+- GS.best_parms_    返回参数的最佳组合
+- GS.best_score_    模型的评估指标
+
+
+
+
+
+## 优缺点
+
+### 优点
+
+- 模型具有可读性
+- 分类速度快
+
+### 缺点
 
 
 
