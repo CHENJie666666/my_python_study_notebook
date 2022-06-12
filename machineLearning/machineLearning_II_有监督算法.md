@@ -1,4 +1,4 @@
-# 有监督算法篇
+有监督算法篇
 
 
 
@@ -10,9 +10,10 @@ perception
 
 ### 简介
 
-- 二分类线性分类模型
+- 二分类线性分类模型、判别模型
 
 - 神经网络和支持向量机的基础
+- 几何解释：用一个超平面将特征空间分为两个部分
 
 ### 模型
 
@@ -21,6 +22,66 @@ perception
 $$
 f(x)=sign(wx+b)
 $$
+
+- 损失函数
+
+空间中任意一点到超平面 $S$ 的距离为：
+$$
+\frac{1}{||w||}|wx_0+b|
+$$
+感知机的损失函数定义为：（分类错误的点到超平面的距离之和）
+$$
+L(w, b)=\sum_{x_i\in M}y_i(x_i+b)
+$$
+$M$ 表示误分类的集合
+
+- 优化方法
+
+随机梯度下降法（stochastic gradient descent）
+
+当训练数据线性可分时，感知机是可收敛的
+
+
+
+## 2. Numpy算法
+
+```python
+import pandas as pd
+import numpy as np
+from sklearn.datasets import load_iris
+
+class Perceptron:
+    def __init__(self):
+        pass
+    
+    def sign(self, x, w, b):
+        return np.dot(x, w) + b
+    
+    def train(self, X_train, y_train, learning_rate):
+        # 参数初始化
+        w, b = self.initilize_with_zeros(X_train.shape[1])
+        # 初始化误分类
+        is_wrong = False
+        while not is_wrong:
+            wrong_count = 0
+            for i in range(len(X_train)):
+                X = X_train[i]
+                y = y_train[i]
+                # 如果存在误分类点
+                # 更新参数
+                # 直到没有误分类点
+                if y * self.sign(X, w, b) <= 0:
+                    w = w + learning_rate*np.dot(y, X)
+                    b = b + learning_rate*y
+                    wrong_count += 1
+            if wrong_count == 0:
+                is_wrong = True
+                print('There is no missclassification!')
+
+            # 保存更新后的参数
+            params = {'w': w, 'b': b}
+        return params
+```
 
 
 
@@ -1087,6 +1148,119 @@ plot_logistic(X_train, y_train, params)
 
 
 
+# 朴素贝叶斯
+
+## 1. 原理
+
+### 简介
+
+#### 贝叶斯公式
+
+根据$P(x, y) = P(x) · P(y|x) = P(y) · P(x|y)$可以得到
+
+$$
+P(x|y) = \frac{P(y|x) · P(x)}{P(y)}
+$$
+
+#### 朴素——条件独立
+
+假设 $x$, $y$ 相对于 $z$ 是独立的，则有
+
+$$
+P(x,y|z) = P(x|z) · P(y|z)
+$$
+
+### 优化问题
+
+#### 极大似然估计——后验概率最大化
+
+$$
+\mathop{argmax}_{c_k}P(Y=c_k)\prod_jP(X^{(j)}=x^{(j)}|Y=c_k)
+$$
+
+#### 贝叶斯估计——平滑系数
+
+$$
+P_\lambda(X^{(j)}=a_{jl}|Y=c_k)=\frac{\sum_{i=1}^NI(x_i^{(j)}=a_{jl},y_i=c_k)+\lambda}{\sum_{i=1}^NI(y_i=c_k)+S_j\lambda}
+$$
+
+$\lambda$ 等于1时为拉普拉斯平滑
+
+
+
+
+
+```python
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score
+X, y = load_iris(return_X_y=True)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=0)
+gnb = GaussianNB()
+y_pred = gnb.fit(X_train, y_train).predict(X_test)
+print("Accuracy of GaussianNB in iris data test:", 
+      accuracy_score(y_test, y_pred))
+```
+
+
+
+## numpy实现
+
+```python
+import numpy as  np
+import pandas as pd
+
+class Naive_Bayes:
+    def __init__(self):
+        pass
+
+    # 朴素贝叶斯训练过程
+    def nb_fit(self, X, y):
+        classes = y[y.columns[0]].unique()
+        class_count = y[y.columns[0]].value_counts()
+        # 类先验概率
+        class_prior = class_count / len(y)
+        # 计算类条件概率
+        prior = dict()
+        for col in X.columns:
+            for j in classes:
+                p_x_y = X[(y == j).values][col].value_counts()
+                for i in p_x_y.index:
+                    prior[(col, i, j)] = p_x_y[i] / class_count[j]
+
+        return classes, class_prior, prior
+
+    # 预测新的实例
+    def predict(self, X_test):
+        res = []
+        for c in classes:
+            p_y = class_prior[c]
+            p_x_y = 1
+            for i in X_test.items():
+                p_x_y *= prior[tuple(list(i) + [c])]
+            res.append(p_y * p_x_y)
+        return classes[np.argmax(res)]
+
+
+if __name__ == "__main__":
+    x1 = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3]
+    x2 = ['S', 'M', 'M', 'S', 'S', 'S', 'M', 'M', 'L', 'L', 'L', 'M', 'M', 'L', 'L']
+    y = [-1, -1, 1, 1, -1, -1, -1, 1, 1, 1, 1, 1, 1, 1, -1]
+    df = pd.DataFrame({'x1': x1, 'x2': x2, 'y': y})
+    X = df[['x1', 'x2']]
+    y = df[['y']]
+    X_test = {'x1': 2, 'x2': 'S'}
+
+    nb = Naive_Bayes()
+    classes, class_prior, prior = nb.nb_fit(X, y)
+    print('测试数据预测类别为：', nb.predict(X_test))
+```
+
+
+
+
+
 # k-近邻算法
 
 K-Nearest Neighbors, KNN
@@ -1901,6 +2075,743 @@ GS = GS.fit(x_train, y_train)
 
 
 
+# AdaBoost算法
+
+## 1. 原理
+
+#### 提升方法
+
+以分类问题为例，先训练一个弱分类器，再通过改变训练数据的权值分布学习一系列弱分类器，再将这些弱分类器进行组合得到一个强分类器
+
+#### AdaBoost算法
+
+- 步骤
+
+在均匀的权值分布训练样本上训练一个基分类器 $G_m{x}$
+
+计算 $G_m{x}$ 在训练数据上的分类误差率
+$$
+e_m=\sum_{i=1}^NP(G_m(x_i)\neq y_i)=\sum_{i=1}^Nw_{mi}I(G_m(x_i)\neq y_i)
+$$
+计算 $G_m(x)$ 系数
+$$
+\alpha_m=\frac{1}{2}ln\frac{1-e_m}{e_m}
+$$
+更新训练数据集的权值分布
+$$
+w_{m+1,i}=\frac{w_m,i}{\sum_{i=1}^Nexp(-\alpha_my_iG_m(x_i))}exp(-\alpha_my_iGm(x_i)), i=1,2,...,N
+$$
+构建基本分类器的线性组合
+$$
+G(x)=sign(\sum_{m=1}^M\alpha_mG_m(x))
+$$
+
+- 解释
+
+AdaBoost 算法还被认为是一种模型为加法模型、损失函数为指数函数、学习算法为前向分布算法时的二分类学习方法
+
+- 提升树
+
+以分类树或回归树为基本分类器的提升方法
+
+
+
+## 2. sklearn-API
+
+
+
+
+
+### 示例
+
+```python
+from sklearn.ensemble import AdaBoostClassifier
+clf_ = AdaBoostClassifier(n_estimators=5, random_state=0)
+# train
+clf_.fit(X_train, y_train)
+# valid
+y_pred_ = clf_.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred_)
+print ("Accuracy:", accuracy)
+```
+
+
+
+
+
+## Numpy 代码实现
+
+```python
+class DecisionStump():
+    """定义一个决策树桩，本质上就是一个带有阈值划分的决策树结点"""
+    def __init__(self):
+        # 基于划分阈值决定样本分类为1还是-1
+        self.polarity = 1
+        # 特征索引
+        self.feature_index = None
+        # 特征划分阈值
+        self.threshold = None
+        # 指示分类准确率的值
+        self.alpha = None
+        
+class Adaboost():
+    # 弱分类器个数
+    def __init__(self, n_estimators=5):
+        self.n_estimators = n_estimators
+    # Adaboost拟合算法
+    def fit(self, X, y):
+        n_samples, n_features = X.shape
+
+        # (1) 初始化权重分布为均匀分布 1/N
+        w = np.full(n_samples, (1/n_samples))
+        
+        self.estimators = []
+        # (2) for m in (1,2,...,M)
+        for _ in range(self.n_estimators):
+            # (2.a) 训练一个弱分类器：决策树桩
+            clf = DecisionStump()
+            # 设定一个最小化误差
+            min_error = float('inf')
+            # 遍历数据集特征，根据最小分类误差率选择最优划分特征
+            for feature_i in range(n_features):
+                feature_values = np.expand_dims(X[:, feature_i], axis=1)
+                unique_values = np.unique(feature_values)
+                # 尝试将每一个特征值作为分类阈值
+                for threshold in unique_values:
+                    p = 1
+                    # 初始化所有预测值为1
+                    prediction = np.ones(np.shape(y))
+                    # 小于分类阈值的预测值为-1
+                    prediction[X[:, feature_i] < threshold] = -1
+                    # 2.b 计算误差率
+                    error = sum(w[y != prediction])
+                    
+                    # 如果分类误差大于0.5，则进行正负预测翻转
+                    # E.g error = 0.8 => (1 - error) = 0.2
+                    if error > 0.5:
+                        error = 1 - error
+                        p = -1
+
+                    # 一旦获得最小误差则保存相关参数配置
+                    if error < min_error:
+                        clf.polarity = p
+                        clf.threshold = threshold
+                        clf.feature_index = feature_i
+                        min_error = error
+                        
+            # 2.c 计算基分类器的权重
+            clf.alpha = 0.5 * math.log((1.0 - min_error) / (min_error + 1e-10))
+            # 初始化所有预测值为1
+            predictions = np.ones(np.shape(y))
+            # 获取所有小于阈值的负类索引
+            negative_idx = (clf.polarity * X[:, clf.feature_index] < clf.polarity * clf.threshold)
+            # 将负类设为 '-1'
+            predictions[negative_idx] = -1
+            # 2.d 更新样本权重
+            w *= np.exp(-clf.alpha * y * predictions)
+            w /= np.sum(w)
+
+            # 保存该弱分类器
+            self.estimators.append(clf)
+    
+    # 定义预测函数
+    def predict(self, X):
+        n_samples = np.shape(X)[0]
+        y_pred = np.zeros((n_samples, 1))
+        # 计算每个弱分类器的预测值
+        for clf in self.estimators:
+            # 初始化所有预测值为1
+            predictions = np.ones(np.shape(y_pred))
+            # 获取所有小于阈值的负类索引
+            negative_idx = (clf.polarity * X[:, clf.feature_index] < clf.polarity * clf.threshold)
+            # 将负类设为 '-1'
+            predictions[negative_idx] = -1
+            # 2.e 对每个弱分类器的预测结果进行加权
+            y_pred += clf.alpha * predictions
+
+        # 返回最终预测结果
+        y_pred = np.sign(y_pred).flatten()
+        return y_pred
+```
+
+
+
+
+
+随机森林 Random Forest
+
+集成模型
+
+三类集成算法：bagging (RF), boosting (Adaboost, GBDT), stacking
+
+bagging    模型独立，相互平行
+
+boosting    按顺序逐步提升特征权重
+
+sklearn.ensemble模块
+
+随机森林分类器  RandomForestClassifier
+
+from sklearn.ensemble import RandomForestClassifier
+
+单个树的错误率不能超过50%
+
+参数
+
+n_estimators    基评估器的数量（一般在0~200之内），一般随着该值的升高，准确度迅速升高，然后持平（该值太高时计算量较大）
+
+random_state    生成森林的随机性参数
+
+bootstrap    默认为True，表示有放回随机抽样
+
+oob_score    袋外数据（没有被抽中的数据），可用来测试（即不需划分训练集和测试集），设置为True
+
+其他参数与DecisionTreeClassifier一致
+
+API
+
+from sklearn.ensemble import RandomForestClassifier rfc = RandomForestClassifier() model = rfc.fit(x_train, y_train) score = model.score(x_test, y_test)
+
+Copy
+
+Caption
+
+
+
+Plain Text
+
+接口：apply, fit, predict, score
+
+属性
+
+rfc.estimators_    查看森林中树的状况
+
+rfc.oob_score_    查看袋外数据的测试结果
+
+随机森林回归器  RandomForestRegressor
+
+from sklearn.ensemble import RandomForestRegressor
+
+可以用于填补缺失值
+
+遍历所有特征，从缺失值最少的特征开始填充，此时其他缺失特征用0填充
+
+from sklearn.impute import SimpleImputer import numpy as np import pandas as pd from sklearn.ensemble import RandomForestRegressor # 返回缺失值数量从小到大排序所对应的索引 sortindex = np.argsort(X_missing.isnull().sum(axis=0)).values for i in sortindex:    df = X_missing.copy()    # 构造新标签    fillc = df.iloc[:, i]    # 构造新特征矩阵    df = pd.concat([df.iloc[:, df.columns != i], pd.DataFrame(y_full)], axis=1)    # 缺失值零填充    df_0 = SimpleImputer(missing_values=np.nan, strategy='constant', fill_value=0).fit_transform(df)     # 选择训练集和测试集    y_train = fillc[fillc.notnull()]    y_test = fillc[fillc.isnull()]    x_train = df_0[y_train.index, :]    x_test = df_0[y_test.index, :]     # 用随机森林填补缺失值    rfc = RandomForestRegressor(n_estimators=100)    rfc = rfc.fit(x_train, y_train)    y_predict = rfc.predict(x_test)     # 将填补好的值返回到原始的特征矩阵中    X_missing.loc[X_missing.iloc[:, i].isnull(), i] = y_predict
+
+Copy
+
+Caption
+
+
+
+Plain Text
+
+
+
+# 梯度提升决策树
+
+Gradient Boosting Decision Tree, GBDT
+
+## 1. 原理
+
+### 简介
+
+- GBDT 是由决策树、提升模型和梯度下降一起构成的
+- GBDT 中使用 CART 作为弱分类器
+
+### 流程
+
+- 初始化弱分类器
+
+$$
+f_0(x)=argmin_c\sum_{i=1}^NL(y_i,c)
+$$
+
+- 计算样本的负梯度（残差）
+
+$$
+r_{im}=-[\frac{\partial L(y_i,f(x_i))}{\partial f(x_i)}]_{f(x)=f_{m-1}(x)}
+$$
+
+- 将残差与数据作为下棵树的训练数据，重复以上过程，得到最终学习器
+
+
+
+
+
+# 支持向量机
+
+## 1. 原理
+
+### 简介
+
+- support vector machines, SVM
+
+特征空间上的间隔最大的线性分类器，通过核技巧也可用于非线性分类
+
+学习策略为间隔最大化——求解凸二次规划问题（convex quadratic programming）
+
+- 种类
+
+线性可分支持向量机——硬间隔最大化
+
+线性支持向量机——软间隔最大化
+
+非线性支持向量机——核方法
+
+### 线性可分支持向量机
+
+#### 分类决策函数
+
+$$
+f(x)=sign(w^*x+b^*)
+$$
+
+找到两类数据正确划分并且间隔最大的超平面
+
+#### 函数间隔与几何间隔
+
+在超平面确定前提下，$|wx+b|$ 能够表示点 $x$ 距离超平面远近，$wx+b$ 的符号则表示是否分类正确
+
+超平面关于点 $x$ 的函数间隔（function margin）定义为：
+$$
+\hat\gamma_i = y_i(wx_i+b)
+$$
+超平面关于训练集的函数间隔定义为：
+$$
+\hat\gamma = \mathop{min}_{i=1,...,N}\hat\gamma_i
+$$
+几何间隔则表示为：（实例点到超平面的带符号的距离的最小值）
+$$
+\hat\gamma = min(y_i(\frac{w}{||w||}x_i+\frac{b}{||w||}))
+$$
+
+#### 最优化问题
+
+最大化 $\hat\gamma$，转变为：
+$$
+\mathop{min}_{w,b}\ \frac{1}{2}||w||^2  \\
+s.t. \ y_i(wx_i+b) -1 \geqslant 0, i=1,2,...,N
+$$
+
+#### 支持向量与间隔
+
+- 支持向量：两类数据中距离决策边界最近的点
+- 间隔 margin：两个 支持向量所在超平面间的距离
+
+<img src="C:\Users\27110\AppData\Roaming\Typora\typora-user-images\image-20220611222439615.png" alt="image-20220611222439615" style="zoom:50%;" />
+
+#### 算法实现
+
+```python
+from cvxopt import matrix, solvers
+### 实现线性可分支持向量机
+### 硬间隔最大化策略
+class Hard_Margin_SVM:
+    ### 线性可分支持向量机拟合方法
+    def fit(self, X, y):
+        # 训练样本数和特征数
+        m, n = X.shape
+
+        # 初始化二次规划相关变量：P/q/G/h
+        self.P = matrix(np.identity(n + 1, dtype=np.float))
+        self.q = matrix(np.zeros((n + 1,), dtype=np.float))
+        self.G = matrix(np.zeros((m, n + 1), dtype=np.float))
+        self.h = -matrix(np.ones((m,), dtype=np.float))
+
+        # 将数据转为变量
+        self.P[0, 0] = 0
+        for i in range(m):
+            self.G[i, 0] = -y[i]
+            self.G[i, 1:] = -X[i, :] * y[i]
+        
+        # 构建二次规划求解
+        sol = solvers.qp(self.P, self.q, self.G, self.h)
+
+        # 对权重和偏置寻优
+        self.w = np.zeros(n,) 
+        self.b = sol['x'][0] 
+        for i in range(1, n + 1):
+            self.w[i - 1] = sol['x'][i]
+        return self.w, self.b
+
+    ### 定义模型预测函数
+    def predict(self, X):
+        return np.sign(np.dot(self.w, X.T) + self.b)
+```
+
+
+
+### 线性支持向量机
+
+#### 松弛系数
+
+存在特异点（outlier）导致非线性可分，故引入一个大于零的松弛变量 $\xi_i$ 使得约束条件变为：
+$$
+y_i(wx_i+b)\geqslant 1- \xi_i
+$$
+
+#### 最优化问题
+
+$$
+\mathop{min}_{w,b}\ \frac{1}{2}||w||^2 +C\sum_{i=1}^N\xi_i \\
+s.t. \ y_i(wx_i+b) -1 \geqslant 0, i=1,2,...,N
+$$
+
+$C$ 为惩罚系数
+
+也可以利用合页损失函数进行优化
+
+#### 软间隔与支持向量
+
+软间隔的支持向量 $x_i$ 或在间隔边界上，或在间隔边界与分离超平面之间，或在超平面误分一侧
+
+<img src="C:\Users\27110\AppData\Roaming\Typora\typora-user-images\image-20220611222512879.png" alt="image-20220611222512879" style="zoom:50%;" />
+
+#### 算法实现
+
+```python
+from cvxopt import matrix, solvers
+
+### 定义一个线性核函数
+def linear_kernel(x1, x2):
+    '''
+    输入:
+    x1: 向量1
+    x2: 向量2
+    输出:
+    np.dot(x1, x2): 两个向量的点乘
+    '''
+    return np.dot(x1, x2)
+
+### 定义近似线性可分支持向量机
+### 软间隔最大化策略
+class Soft_Margin_SVM:
+    ### 定义基本参数
+    def __init__(self, kernel=linear_kernel, C=None):
+        # 软间隔svm核函数，默认为线性核函数
+        self.kernel = kernel
+        # 惩罚参数
+        self.C = C
+        if self.C is not None: 
+            self.C = float(self.C)
+    
+    ### 定义线性支持向量机拟合方法
+    def fit(self, X, y):
+        # 训练样本数和特征数
+        m, n = X.shape
+        
+        # 基于线性核计算Gram矩阵
+        K = self._gram_matrix(X)
+                
+        # 初始化二次规划相关变量：P/q/G/h
+        P = matrix(np.outer(y,y) * K)
+        q = matrix(np.ones(m) * -1)
+        A = matrix(y, (1, m))
+        b = matrix(0.0)
+        
+        # 未设置惩罚参数时的G和h矩阵
+        if self.C is None:
+            G = matrix(np.diag(np.ones(m) * -1))
+            h = matrix(np.zeros(m))
+        # 设置惩罚参数时的G和h矩阵
+        else:
+            tmp1 = np.diag(np.ones(m) * -1)
+            tmp2 = np.identity(m)
+            G = matrix(np.vstack((tmp1, tmp2)))
+            tmp1 = np.zeros(m)
+            tmp2 = np.ones(m) * self.C
+            h = matrix(np.hstack((tmp1, tmp2)))
+
+        # 构建二次规划求解
+        sol = solvers.qp(P, q, G, h, A, b)
+        # 拉格朗日乘子
+        a = np.ravel(sol['x'])
+
+        # 寻找支持向量
+        spv = a > 1e-5
+        ix = np.arange(len(a))[spv]
+        self.a = a[spv]
+        self.spv = X[spv]
+        self.spv_y = y[spv]
+        print('{0} support vectors out of {1} points'.format(len(self.a), m))
+
+        # 截距向量
+        self.b = 0
+        for i in range(len(self.a)):
+            self.b += self.spv_y[i]
+            self.b -= np.sum(self.a * self.spv_y * K[ix[i], spv])
+        self.b /= len(self.a)
+
+        # 权重向量
+        self.w = np.zeros(n,)
+        for i in range(len(self.a)):
+            self.w += self.a[i] * self.spv_y[i] * self.spv[i]
+
+    ### 定义Gram矩阵计算函数
+    def _gram_matrix(self, X):
+        m, n = X.shape
+        K = np.zeros((m, m))
+        # 遍历计算Gram矩阵
+        for i in range(m):
+            for j in range(m):
+                K[i,j] = self.kernel(X[i], X[j])
+        return K
+    
+    ### 定义映射函数
+    def project(self, X):
+        if self.w is not None:
+            return np.dot(X, self.w) + self.b
+    
+    ### 定义模型预测函数
+    def predict(self, X):
+        return np.sign(np.dot(self.w, X.T) + self.b)
+```
+
+
+
+### 非线性支持向量机
+
+#### 核技巧 kernel trick
+
+将非线性问题通过变化转化为线性问题
+$$
+映射函数：\phi(x):\chi → \varkappa \\
+使得对所有 x,z \in \chi，函数 K(x,z)满足条件：K(x, z)=\phi(x)\phi(z)
+$$
+
+#### 常用核函数
+
+- 多项式核函数
+
+$$
+K(x, z)=(xz+1)^p
+$$
+
+- 高斯核函数
+
+$$
+K(x, z)=exp(-\frac{||x-z||^2}{2\sigma^2})
+$$
+
+- 字符串核函数
+
+定义在字符串集合上的核函数，在文本分类、信息检索、生物信息学方面有应用
+
+#### 算法实现
+
+```python
+from cvxopt import matrix, solvers
+
+### 定义高斯核函数
+def gaussian_kernel(x1, x2, sigma=5.0):
+    '''
+    输入:
+    x1: 向量1
+    x2: 向量2
+    输出:
+    两个向量的高斯核
+    '''
+    return np.exp(-1 * np.linalg.norm(x1-x2)**2 / (2 * (sigma ** 2)))
+
+### 定义线性不可分支持向量机
+### 借助于高斯核函数转化为线性可分的情形
+class Non_Linear_SVM:
+    ### 定义基本参数
+    def __init__(self, kernel=gaussian_kernel):
+        # 非线性可分svm核函数，默认为高斯核函数
+        self.kernel = kernel
+    
+    ### 定义非线性可分支持向量机拟合方法
+    def fit(self, X, y):
+        # 训练样本数和特征数
+        m, n = X.shape
+        
+        # 基于线性核计算Gram矩阵
+        K = self._gram_matrix(X)
+                
+        # 初始化二次规划相关变量：P/q/A/b/G/h
+        P = matrix(np.outer(y,y) * K)
+        q = matrix(np.ones(m) * -1)
+        A = matrix(y, (1, m))
+        b = matrix(0.0)
+        G = matrix(np.diag(np.ones(m) * -1))
+        h = matrix(np.zeros(m))
+
+        # 构建二次规划求解
+        sol = solvers.qp(P, q, G, h, A, b)
+        # 拉格朗日乘子
+        a = np.ravel(sol['x'])
+
+        # 寻找支持向量
+        spv = a > 1e-5
+        ix = np.arange(len(a))[spv]
+        self.a = a[spv]
+        self.spv = X[spv]
+        self.spv_y = y[spv]
+        print('{0} support vectors out of {1} points'.format(len(self.a), m))
+
+        # 截距向量
+        self.b = 0
+        for i in range(len(self.a)):
+            self.b += self.spv_y[i]
+            self.b -= np.sum(self.a * self.spv_y * K[ix[i], spv])
+        self.b /= len(self.a)
+
+        # 权重向量
+        self.w = None
+
+    ### 定义Gram矩阵计算函数
+    def _gram_matrix(self, X):
+        m, n = X.shape
+        K = np.zeros((m, m))
+        # 遍历计算Gram矩阵
+        for i in range(m):
+            for j in range(m):
+                K[i,j] = self.kernel(X[i], X[j])
+        return K
+    
+    ### 定义映射函数
+    def project(self, X):
+        y_pred = np.zeros(len(X))
+        for i in range(X.shape[0]):
+            s = 0
+            for a, spv_y, spv in zip(self.a, self.spv_y, self.spv):
+                s += a * spv_y * self.kernel(X[i], spv)
+            y_pred[i] = s
+        return y_pred + self.b
+    
+    ### 定义模型预测函数
+    def predict(self, X):
+        return np.sign(self.project(X))
+```
+
+
+
+## 2. sklearn-API
+
+### 参数说明
+
+class sklearn.svm.SVC(*, C=1.0, kernel='rbf', degree=3, gamma='scale', coef0=0.0, shrinking=True, probability=False, tol=0.001, cache_size=200, class_weight=None, verbose=False, max_iter=- 1, decision_function_shape='ovr', break_ties=False, random_state=None)
+
+- kernel：核函数
+
+1. 'linear'：线性核
+
+![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/10b8bc8b-1f98-432b-8018-3483b92ecf50/Untitled.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/10b8bc8b-1f98-432b-8018-3483b92ecf50/Untitled.png)
+
+1. 'poly'：多项式核
+
+![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/336b8bde-c6ff-4891-942c-f79a79ffed76/Untitled.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/336b8bde-c6ff-4891-942c-f79a79ffed76/Untitled.png)
+
+degree代表d，表示多项式的次数；gamma为多项式的系数；coef0代表r，表示多项式的偏置
+
+1. 'sigmoid'：双曲正切核
+
+![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/3e340d6d-2ba0-4f8a-a6ed-f030393e66c2/Untitled.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/3e340d6d-2ba0-4f8a-a6ed-f030393e66c2/Untitled.png)
+
+1. 'rbf'：高斯径向基
+
+![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/770fdbe9-7ba0-487c-83a1-8f13078615b7/Untitled.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/770fdbe9-7ba0-487c-83a1-8f13078615b7/Untitled.png)
+
+线性核函数对线性可分的分类效果较好，rbf对非线性分类效果较好；线性核函数的计算效率较低，可以使用poly（degree=1）来替代；poly的degree越高，越耗时；rbf和poly都不擅长处理未归一化数据
+
+### 示例
+
+#### 线性可分SVM
+
+```python
+# 导入sklearn线性SVM分类模块
+from sklearn.svm import LinearSVC
+# 创建模型实例
+clf = LinearSVC(random_state=0, tol=1e-5)
+# 训练
+clf.fit(X_train, y_train)
+# 预测
+y_pred = clf.predict(X_test)
+# 计算测试集准确率
+print(accuracy_score(y_test, y_pred))
+```
+
+#### 线性SVM
+
+```python
+from sklearn import svm
+
+clf = svm.SVC(kernel='linear')
+clf.fit(X_train, y_train)
+y_pred = clf.predict(X_test)
+
+print('Accuracy of soft margin svm based on sklearn: ', 
+      accuracy_score(y_test, y_pred))
+```
+
+#### 非线性SVM
+
+```python
+from sklearn import svm
+
+clf = svm.SVC(kernel='rbf')
+clf.fit(X_train, y_train)
+y_pred = clf.predict(X_test)
+print('Accuracy of soft margin svm based on sklearn: ', 
+      accuracy_score(y_test, y_pred))
+```
+
+
+
+```python
+from sklearn.svm import SVC    # SVC类形式
+from sklearn import svm     # svc的函数形式
+
+clf = SVC(kernel='linear').fit(x, y)
+clf.predict(x)    # 根据决策边界对样本进行分类
+clf.score(x, y)    # 准确度
+clf.support_vectors_    # 返回支持向量
+clf.n_support_      # 每个类返回的支持向量的个数
+```
+
+- 核函数的参数
+
+1. degree：默认为3，若核函数非poly，则忽略这个参数
+2. gamma：浮点数；'auto'——1/n_features，默认；'scale'——1/(n_features*X.std())
+3. coef0：浮点数，默认为0.0；核函数的常数项
+
+```python
+# 利用网格搜索寻找poly核函数的最佳参数
+from sklearn.model_selection import StratifiedShuffleSplit, GridSearchCV
+from sklearn.svm import SVC
+import numpy as np
+
+gamma_range = np.logspace(-10, 1, 20)   # 生成等对数间距的数列
+coef0_range = np.logspace(1, 5, 10)
+
+param_grid = dict(gamma = gamma_range, coef0 = coef0_range)     # 生成网格参数
+
+cv = StratifiedShuffleSplit(n_splits=5, test_size=0.3, random_state=1)
+clf = SVC(kernel='poly', degree=1, cache_size=5000)     # cache_size表示使用缓存大小
+grid = GridSearchCV(clf, param_grid=param_grid, cv=cv)
+
+grid.fit(x, y)
+
+print(grid.best_params_, grid.best_score_)
+```
+
+- C：松弛系数的惩罚项系数；默认为1，大于0；C较大时，svc会选择边际较小，能够更好得包括所有分类样本（硬间隔），C越小，软间隔
+- class_weight：样本不均衡；默认None；字典——class_weight[i] * C；'balanced'——n_samples/(n_classes * np.bincount(y))；也可在fit中设置sample_weight；在做样本均衡之后，对少数类的分类效果更好（但对多数类的分类效果更差）
+
+## 评估指标
+
+- probability：启用概率估计，默认为False
+
+在二分类情况下，SVC使用Platt缩放生成概率（在decision_function生成的距离上进行sigmoid压缩，并附加训练数据的交叉验证你和，生成类逻辑回国的SVM分数）；多分类时参考Wu et al. (2004)发表论文。
+
+```python
+svm = svm.SVC(kernel='linear', C=1.0, probability=True).fit(X, y)
+svm.decision_function(X)
+svm.predict_proba(X)
+```
+
 
 
 
@@ -2079,9 +2990,11 @@ accuracy = accuracy_score(y_test, y_pred)
  ### 缺点
 
 - LDA不适合对非高斯分布样本进行降维，PCA也有这个问题。
-
 - LDA降维最多降到类别数k-1的维数，如果我们降维的维度大于k-1，则不能使用LDA。当然目前有一些LDA的进化版算法可以绕过这个问题。
-
 - LDA在样本分类信息依赖方差而不是均值的时候，降维效果不好。
-
 - LDA可能过度拟合数据
+
+
+
+# 贝叶斯网络
+
