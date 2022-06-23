@@ -7,3 +7,8 @@
 2. 其余内容则为Coursera、CSDN等网站上学习整理所得
 
 ![img](https://filescdn.proginn.com/f13bda0b482aff1216df703c03c2a8a8/10b4412f66ed91b36acd8e8680cab5e5.webp)
+
+
+
+[#机器学习公式推导与代码实现 (qq.com)](https://mp.weixin.qq.com/mp/appmsgalbum?__biz=MzI4ODY2NjYzMQ==&action=getalbum&album_id=1369989062744211457&scene=173&from_msgid=2247487805&from_itemidx=1&count=3&nolastread=1#wechat_redirect)
+
